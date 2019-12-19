@@ -1,0 +1,63 @@
+---
+output:
+  pdf_document: default
+  html_document: default
+---
+
+## 02441 Applied Statistics and Statistical Software 
+# Exercise 2B - Brain
+
+
+```{r "setup", include=FALSE}
+## set working directory
+require("knitr")
+```
+
+
+The dataset brainweight contains measurements of the weight of both brain and body for different
+mammals
+
+Variable name | Description
+------------- | -------------
+art | type of mammal
+body| weigth of body (kg)
+brain | weight of brain (gram)
+
+
+## 1. Make a scatterplot of body against brain. Do you see any correlation?
+
+Start by loading the data
+
+```{r}
+# Code here
+```
+
+Plot body against brain
+```{r}
+# Code here
+```
+
+## 2. Make a log transform of both body and brain. Make a scatterplot of the transformed variables. Compute the correlation.
+
+```{r}
+# Code here
+```
+
+## 3. Fit a regression model between log(body) and log(brain)
+
+```{r}
+# Code here
+```
+
+## 4. Is there any outlier in the data?  
+
+```{r}
+#Code here
+```
+
+## 5. How would you evaluate the fit of the model?
+
+```{r}
+# Code here
+```
+

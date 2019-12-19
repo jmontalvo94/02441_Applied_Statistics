@@ -1,0 +1,61 @@
+---
+output:
+  pdf_document: default
+  html_document: default
+---
+
+## 02441 Applied Statistics and Statistical Software 
+# Exercise 2C - Process
+
+
+```{r "setup", include=FALSE}
+## set working directory
+require("knitr")
+```
+
+The dataset process contains measurements of air flow, water temperature, and acid concentration of
+a process loss.
+
+Variable name | Description
+------------- | -------------
+loss | loss from process
+airflow | air flow
+watertemp | temperature of water
+acidconc | concentration of acid
+
+
+## 1. Determine whether air flow, temperature of water, or concentration of acid influence on the process loss by a graphical comparison  
+Start by loading the data
+```{r}
+# Code here
+```
+
+## 2. Determine whether air flow, temperature of water or concentration of acid influence on the process loss by analysing each variable using simple linear regression  
+
+Making simple regression for each variable
+
+```{r}
+# Code here
+```
+
+
+## 3. Determine whether air flow, temperature of water or concentration of acid influence on the process loss using multiple linear regression  
+
+```{r}
+# Code here
+```
+
+## 4. Is there evidence of multicollinearity?
+
+```{r}
+#Code here
+```
+
+
+## 5. Plot the residuals and analyse the results. Which x-variable should be removed if we want to reduce the model?
+
+
+```{r}
+# Code here
+```
+
