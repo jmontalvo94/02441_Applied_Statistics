@@ -11,6 +11,8 @@ output:
 ```{r "setup", include=FALSE}
 ## set working directory
 require("knitr")
+library(car)
+require("car")
 ```
 
 This dataset contains the labor force participation rate (LFPR) of women in 19 cities in the United
@@ -26,13 +28,13 @@ city | City in the US
 ## 1. Compare LFPR rates in the two years with a pooled t-test since the United States did not change much from 1968 to 1972
 Start by loading data:
 ```{r}
-# Code here
+labor <- read.table("labor.txt", header=TRUE)
 ```
 
 If we suspect that the variance is roughly the same for the groups of 1968 and 1972 we can use a Pooled t-test in R
 
 ```{r}
-# Code here
+t.test(labor$x1968, labor$x1972, var.equal=TRUE)
 ```
 
 
@@ -40,7 +42,7 @@ If we suspect that the variance is roughly the same for the groups of 1968 and 1
 
 Paired T-test in R
 ```{r}
-# Code here
+t.test(labor$x1968, labor$x1972, paired=TRUE)
 ```
 
 
@@ -50,5 +52,3 @@ Paired T-test in R
 
 
 ## 4. If you have found a significant change - how big is this change then?
-
-

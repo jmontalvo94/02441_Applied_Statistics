@@ -11,6 +11,8 @@ output:
 ```{r "setup", include=FALSE}
 ## set working directory
 require("knitr")
+library(car)
+require("car")
 ```
 
 Does increasing calcium intake reduce blood pressure? Observational studies suggest that there is a
@@ -30,47 +32,95 @@ decrease | decrease in blood pressure (begin-end)
 
 ## 1. What statistical test is appropriate for comparing the change in blood pressure between the treatment and placebo groups?
 
-
+Two sample t-test
 
 ## 2 .May the data in each group be considered as being normally distributed?
 
 Start by loading data:
 ```{r}
-# put code here
+calcium <- read.table("calcium.txt", header=TRUE)
 ```
 
 Investigate normality
 ```{r}
-# Put code here
+# Split data according to gender
+calcium2 <- split(calcium$Decrease, calcium$Treatment)
+names(calcium2) <- c("Calcium","Placebo")
+
+# Check for normality (both samples) with Q-Q Plots
+par(mfrow=c(1,2))
+qqnorm(calcium2$Calcium, main="Q-Q Plot for Calcium")
+qqline(calcium2$Calcium)
+qqnorm(calcium2$Placebo, main="Q-Q Plot for Placebo")
+qqline(calcium2$Placebo)
+
+# Plot with confidence intervals
+qqPlot(calcium2$Calcium, ylab="Blood Pressure", main="Calcium")
+qqPlot(calcium2$Placebo, ylab="Blood Pressure", main="Placebo")
+
+# Normality test (Shapiro)
+shapiro.test(calcium2$Calcium)
+shapiro.test(calcium2$Placebo)
 ```
 
+```{r}
+# Visual normality test with ecdf and cdf
 
+# Calcium parameters
+xSeqCalcium <- seq(min(calcium2$Calcium), max(calcium2$Calcium), by=0.1)
+muCalcium <- mean(calcium2$Calcium)
+sCalcium <- sd(calcium2$Calcium)
+
+# Placebo parameters
+xSeqPlacebo <- seq(min(calcium2$Placebo), max(calcium2$Placebo), by=0.1)
+muPlacebo <- mean(calcium2$Placebo)
+sPlacebo <- sd(calcium2$Placebo)
+
+# Plot ecdf and cdf
+par(mfrow=c(1,2))
+plot(ecdf(calcium2$Calcium), main="Calcium")
+lines(xSeqCalcium, pnorm(xSeqCalcium, muCalcium, sCalcium), col="red")
+plot(ecdf(calcium2$Placebo), main="Placebo")
+lines(xSeqPlacebo, pnorm(xSeqPlacebo, muPlacebo, sPlacebo), col="red")
+```
+
+Both calcium and placebo are normally distributed since p-values are > $\alpha$ = 0.05, thus we cannot reject the null hypothesis.
 
 ## 3. Test whether the variance in each group can be assumed to be the same
 
 
 ```{r}
-# code here
+varCalcium <- var(calcium2$Calcium)
+varPlacebo <- var(calcium2$Placebo)
+
+x<-calcium$End[calcium$Treatment=='Calcium']
+y<-calcium$End[calcium$Treatment=='Placebo']
+var.test(x,y)
 ```
+
 
 
 ## 4. Make a graphical comparison of the treatment means
 
 
 ```{r}
-# Code here
+par(mfrow=c(1,2))
+boxplot(calcium2$Calcium, main="Calcium", ylim=c(-15,20))
+points(mean(calcium2$Calcium), col="red", pch=4, lwd=2)
+boxplot(calcium2$Placebo, main="Placebo", ylim=c(-15,20))
+points(mean(calcium2$Placebo), col="red", pch=4, lwd=2)
 ```
 
 ## 5. Make the statistical test for comparing the change in blood pressure between the treatment and placebo groups. What is your conclusion? What is the p-value of the test?  
 
 
 ```{r}
-# Code here
+t.test(calcium2$Calcium, calcium2$Placebo)
 ```
 
 
 ## 6. Which non-parametric test could be used if data cannot be assumed to be normally distributed?
 
 ```{r}
-# Code here
+wilcox.test(calcium2$Calcium, calcium2$Placebo, conf.int = TRUE)
 ```

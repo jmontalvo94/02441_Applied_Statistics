@@ -1,7 +1,7 @@
 ---
 output:
-  html_document: default
   pdf_document: default
+  html_document: default
 ---
 
 ## 02441 Applied Statistics and Statistical Software 
@@ -11,6 +11,7 @@ output:
 ```{r "setup", include=FALSE}
 ## set working directory
 require("knitr")
+require("ggplot2")
 ```
 
 
@@ -27,21 +28,40 @@ greenland | Average temperature in Greenland
 
 Start by loading the data (make sure datafile is present in working directory)
 ```{r}
-# Put code here
+clima <- read.table("clima.txt", header=TRUE)
 ```
 
 Use the plot command in R to plot data
 ```{r}
+par(mfrow=c(1,2))
+plot(clima$time, clima$denmark, main="Denmark", type="l", xlab="Year", ylab="Temperature (°C)", col="red")
+plot(clima$time, clima$greenland, main="Greenland", type="l", xlab="Year", ylab="Temperature (°C)", col="dark green")
 ```
 
 Plot Temperatures of Greenland and Denmark up against eachother to explore the relation between these two
 ```{r }
+# Line plot
+plot(clima$time, clima$denmark, type="l", main="Yearly average temperatures in Denmark and Greenland", col="red", xlab="Year", ylab="Temperature (°C)", ylim=c(-15,10), lwd=2)
+lines(clima$time, clima$greenland, col="dark green", lwd=2)
+legend(1900,10, legend=c("Denmark", "Greenland"), col=c("red", "dark green"), lty=1:1, cex=1)
+correlation=cor(clima$denmark, clima$greenland)
+
+# Scatter plot
+plot(clima$denmark, clima$greenland, main="Correlation between Denmark and Greenland", xlab="Denmark", ylab="Greenland")
+
 ```
 
 ## 2 Is the temperature in Denmark increasing when considering the time series 1900-1960? 
 ```{r}
+clima1900 <- clima[clima$time<1961,]
+plot(clima1900$time, clima1900$denmark, main="Yearly average temperature in Denmark (1900 - 1960)", type="l", col="red", xlab="Year", ylab="Temperature (°C)", lwd=2)
+abline(lm(clima1900$denmark~clima1900$time))
 ```
 
 
 ## 3 Is the temperature in Denmark increasing when considering the time series 1960-2000?
-
+```{r}
+clima1960 <- clima[clima$time>1959,]
+plot(clima1960$time, clima1960$denmark, main="Yearly average temperature in Denmark (1960 - 2000)", type="l", col="dark green", xlab="Year", ylab="Temperature (°C)", lwd=2)
+abline(lm(clima1960$denmark~clima1960$time))
+```

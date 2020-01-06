@@ -1,7 +1,7 @@
 ---
 output:
-  html_document: default
   pdf_document: default
+  html_document: default
 ---
 
 ## 02441 Applied Statistics and Statistical Software 
@@ -10,6 +10,8 @@ output:
 ```{r "setup", include=FALSE}
 ## set working directory
 require("knitr")
+library(car)
+require("car")
 ```
 
 The dataset bodyfat contains measurements of bodyfat for a number of men and women 
@@ -25,21 +27,64 @@ fatpct | Measurement of fat percentage
 
 Start by loading the data (make sure datafile is present in working directory)
 ```{r}
-# Put code here
+bodyfat <- read.table("bodyfat.txt", header=TRUE)
 ```
 
 Use both visual aids as well as normality tests to check the normality of fat-percentages on each gender.
 ```{r}
-# Put code here
+# Split data according to gender
+bodyfat2 <- split(bodyfat$fatpct, bodyfat$gender)
+names(bodyfat2) <- c("female","male")
+
+# Check for normality (both samples) with Q-Q Plots
+par(mfrow=c(1,2))
+qqnorm(bodyfat2$female, main="Q-Q Plot for Females")
+qqline(bodyfat2$female)
+qqnorm(bodyfat2$male, main="Q-Q Plot for Males")
+qqline(bodyfat2$male)
+
+# Plot with confidence intervals
+qqPlot(bodyfat2$male)
+qqPlot(bodyfat2$female)
+
+# Normality test (Shapiro)
+shapiro.test(bodyfat2$male)
+shapiro.test(bodyfat2$female)
 ```
+
+```{r}
+# Visual normality test with ecdf and cdf
+
+# Male parameters
+xSeqMale <- seq(min(bodyfat2$male), max(bodyfat2$male), by=0.1)
+muMale <- mean(bodyfat2$male)
+sMale <- sd(bodyfat2$male)
+
+# Female parameters
+xSeqFemale <- seq(min(bodyfat2$female), max(bodyfat2$female), by=0.1)
+muFemale <- mean(bodyfat2$female)
+sFemale <- sd(bodyfat2$female)
+
+# Plot ecdf and cdf
+par(mfrow=c(1,2))
+plot(ecdf(bodyfat2$male), main="Male")
+lines(xSeqMale, pnorm(xSeqMale, muMale, sMale), col="red")
+plot(ecdf(bodyfat2$female), main="Female")
+lines(xSeqFemale, pnorm(xSeqFemale, muFemale, sFemale), col="red")
+```
+
+Both male and female are normally distributed since p-values are > $\alpha$ = 0.05, thus we cannot reject the null hypothesis. 
 
 ## 2. Is there a difference in the percentage of body fat for men and women? Perform a t-test
 ```{r }
-
+t.test(bodyfat2$male, bodyfat2$female)
 ```
+
+There's no difference in the percentage of body fat for men and women since the p-value is > $\alpha$ = 0.05, thus we cannot reject the null hypothesis.
 
 ## 3. Is there a difference in the percentage of body fat for men and women? Perform a non-parametric test
 ```{r}
-
+wilcox.test(bodyfat2$female, bodyfat2$male, conf.int = TRUE)
 ```
 
+There's no difference in the percentage of body fat for men and women since the p-value is > $\alpha$ = 0.05, thus we cannot reject the null hypothesis.
