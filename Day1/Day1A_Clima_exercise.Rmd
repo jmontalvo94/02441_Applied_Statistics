@@ -58,6 +58,7 @@ plot(clima1900$time, clima1900$denmark, main="Yearly average temperature in Denm
 abline(lm(clima1900$denmark~clima1900$time))
 ```
 
+No, the temperature is decreasing.
 
 ## 3 Is the temperature in Denmark increasing when considering the time series 1960-2000?
 ```{r}
@@ -65,3 +66,5 @@ clima1960 <- clima[clima$time>1959,]
 plot(clima1960$time, clima1960$denmark, main="Yearly average temperature in Denmark (1960 - 2000)", type="l", col="dark green", xlab="Year", ylab="Temperature (°C)", lwd=2)
 abline(lm(clima1960$denmark~clima1960$time))
 ```
+
+Yes, the temperature is increasing.

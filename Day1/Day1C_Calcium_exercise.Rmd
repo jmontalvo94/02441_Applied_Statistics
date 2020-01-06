@@ -32,7 +32,7 @@ decrease | decrease in blood pressure (begin-end)
 
 ## 1. What statistical test is appropriate for comparing the change in blood pressure between the treatment and placebo groups?
 
-Two sample t-test
+Two sample t-test if the samples are normally distributed, if not, we should use Wilcoxon rank sum test.
 
 ## 2 .May the data in each group be considered as being normally distributed?
 
@@ -118,8 +118,11 @@ points(mean(calcium2$Placebo), col="red", pch=4, lwd=2)
 t.test(calcium2$Calcium, calcium2$Placebo)
 ```
 
+Given the data we have, we can say that the mean change in blood pressure between the two groups is not statistically significant, therefore the group's means are similar. This is given by the p-value being > $\alpha$ = 0.05.
 
 ## 6. Which non-parametric test could be used if data cannot be assumed to be normally distributed?
+
+We could use Wilcoxon rank sum test.
 
 ```{r}
 wilcox.test(calcium2$Calcium, calcium2$Placebo, conf.int = TRUE)

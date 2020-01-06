@@ -34,6 +34,8 @@ labor <- read.table("labor.txt", header=TRUE)
 If we suspect that the variance is roughly the same for the groups of 1968 and 1972 we can use a Pooled t-test in R
 
 ```{r}
+s1968=var(labor$x1968)
+s1972=var(labor$x1972)
 t.test(labor$x1968, labor$x1972, var.equal=TRUE)
 ```
 
@@ -45,10 +47,12 @@ Paired T-test in R
 t.test(labor$x1968, labor$x1972, paired=TRUE)
 ```
 
-
+Difference in the mean labor fource participation of women in both years is statistically significant. Therefore, we reject the null hypothesis and accept the alternative hypothesis where the true difference in means is not equal to 0, i.e. they're different.
 
 ## 3. Which of the two methods you have used do you find most appropriate?
 
-
+Paired t-test gives us a change of the labor force in two different years, it should be the same sample in different times.
 
 ## 4. If you have found a significant change - how big is this change then?
+
+It's as big as 2.4577, i.e. the t-crit of the paired t-test.

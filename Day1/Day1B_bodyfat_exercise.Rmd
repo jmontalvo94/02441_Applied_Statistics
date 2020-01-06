@@ -80,11 +80,11 @@ Both male and female are normally distributed since p-values are > $\alpha$ = 0.
 t.test(bodyfat2$male, bodyfat2$female)
 ```
 
-There's no difference in the percentage of body fat for men and women since the p-value is > $\alpha$ = 0.05, thus we cannot reject the null hypothesis.
+There's no difference in the percentage of body fat for men and women since the t-value is small and the p-value is > $\alpha$ = 0.05, thus we cannot reject the null hypothesis, i.e. the probability that the means of both groups are not statistically different.
 
 ## 3. Is there a difference in the percentage of body fat for men and women? Perform a non-parametric test
 ```{r}
 wilcox.test(bodyfat2$female, bodyfat2$male, conf.int = TRUE)
 ```
 
-There's no difference in the percentage of body fat for men and women since the p-value is > $\alpha$ = 0.05, thus we cannot reject the null hypothesis.
+There's no difference in the percentage of body fat for men and women since the p-value is > $\alpha$ = 0.05, thus we cannot reject the null hypothesis, i.e. we accept that both groups' means are not statistically different.
