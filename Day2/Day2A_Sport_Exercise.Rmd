@@ -18,7 +18,7 @@ require("ggplot2")
 This dataset contains the gold medal performances in the men's long jump, high jump and discus throw
 for the modern Olympic games from 1900 to 1984. Data are also provided for the 1968 Olympics, but
 one may wish to omit them from the analyses because that Olympics was quite different from later
-ones.
+ones. $\alpha$ > chiquibeibi
 
 Variable name | Description
 ------------- | -------------

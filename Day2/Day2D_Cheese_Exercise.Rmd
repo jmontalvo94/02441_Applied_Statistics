@@ -61,37 +61,53 @@ Intercept of H2S isn't statistically significant.
 
 ## 2. Why do you think acetic and h2s has been transformed?
 
-Because acetic and h2s are concentrations which probably behave as a natural logarithm. By transforming the values of these variables we can "see" better how the variables relate to each other and with the dependent variable.
+Because acetic and h2s are concentrations which probably behave as a natural logarithm. By transforming the values of these variables we can "see" better how the variables relate between each other and with the dependent variable.
 
 ## 3. What happens when you run a regression model with all the independent variables in the model?
 
 ```{r}
-lmall <- lm(cheese$taste~cheese$Acetic+cheese$H2S+cheese$Lactic)
-summary(lmall)
+taste <- cheese$taste
+Acetic <- cheese$Acetic
+H2S <- cheese$H2S
+Lactic <- cheese$Lactic
+lmall <- lm(taste~Acetic+H2S+Lactic)
+#lmall <- lm(cheese$taste~cheese$Acetic+cheese$H2S+cheese$Lactic)
+summary(lmall, correlation=TRUE)
 par(mfrow=c(2,2))
 plot(lmall)
 ```
 
-It looks like acetic acid concentration isn't statistically significant in the model.
+It looks like acetic acid concentration isn't relevant in the model. Multiple R-squared is better than individual linear regression models.
 
 ## 4. What model would you prefer for prediction?
 ```{r}
-#Code here
+lmall_minusAcetic <- lm(taste~H2S+Lactic)
+summary(lmall_minusAcetic)
+par(mfrow=c(2,2))
+plot(lmall_minusAcetic)
+AIC(lmacetic, lmh2s, lmlactic, lmall, lmall_minusAcetic, k = 2)
 ```
 
-
+I'd choose the multiple linear regression model without Acetic.
 
 ## 5. Predict the 'taste' of a cheese where (log) acetic is 5.3, (log) h2s is 8.0 and lactic is 3.0
 
 
 ```{r}
-# Code here
+taste.new <- c(5.3, 8.0, 3.0)
+pred.cheese <- data.frame(Acetic = taste.new[1], H2S = taste.new[2], Lactic=taste.new[3])
+range.pred <- predict(lmall, newdata = pred.cheese)
+range.pred <- unname(range.pred)
 ```
 
 
 ## 6. Could there be some problems with the above prediction?
 
 ```{r}
-
-# Code here
+plot(cheese$taste~cheese$Acetic, ylim=c(0,70))
+points(taste.new[1],range.pred, col="red", pch=19)
+plot(cheese$taste~cheese$H2S, ylim=c(0,70))
+points(taste.new[2],range.pred, col="red", pch=19)
+plot(cheese$taste~cheese$Lactic, xlim=c(0,3), ylim=c(0,70))
+points(taste.new[3],range.pred, col="red", pch=19)
 ```

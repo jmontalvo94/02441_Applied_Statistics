@@ -101,4 +101,4 @@ plot(lmall3)
 summary(lmall3, correlation=TRUE)
 ```
 
-We should remove acid concentration.
+We should remove acid concentration and the outlier.
