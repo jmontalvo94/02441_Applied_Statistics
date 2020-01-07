@@ -11,7 +11,6 @@ output:
 ```{r "setup", include=FALSE}
 ## set working directory
 require("knitr")
-library(car)
 require("car")
 ```
 
@@ -36,7 +35,7 @@ If we suspect that the variance is roughly the same for the groups of 1968 and 1
 ```{r}
 s1968=var(labor$x1968)
 s1972=var(labor$x1972)
-t.test(labor$x1968, labor$x1972, var.equal=TRUE)
+t.test(labor$x1972, labor$x1968, var.equal=TRUE)
 ```
 
 
@@ -44,14 +43,14 @@ t.test(labor$x1968, labor$x1972, var.equal=TRUE)
 
 Paired T-test in R
 ```{r}
-t.test(labor$x1968, labor$x1972, paired=TRUE)
+t.test(labor$x1972, labor$x1968, paired=TRUE)
 ```
 
-Difference in the mean labor fource participation of women in both years is statistically significant. Therefore, we reject the null hypothesis and accept the alternative hypothesis where the true difference in means is not equal to 0, i.e. they're different.
+Difference in the mean labor fource participation of women in both years is statistically significant. Therefore, we reject the null hypothesis and accept the alternative hypothesis where the true difference in means is not equal to 0, i.e. they're different. There's an increase in labor force participation.
 
 ## 3. Which of the two methods you have used do you find most appropriate?
 
-Paired t-test gives us a change of the labor force in two different years, it should be the same sample in different times.
+Both tests are valid. Paired t-test gives us a change of the labor force in two different years, it should be the same sample in different times.
 
 ## 4. If you have found a significant change - how big is this change then?
 

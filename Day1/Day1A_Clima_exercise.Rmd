@@ -45,6 +45,7 @@ plot(clima$time, clima$denmark, type="l", main="Yearly average temperatures in D
 lines(clima$time, clima$greenland, col="dark green", lwd=2)
 legend(1900,10, legend=c("Denmark", "Greenland"), col=c("red", "dark green"), lty=1:1, cex=1)
 correlation=cor(clima$denmark, clima$greenland)
+cor.test(clima$denmark, clima$greenland)
 
 # Scatter plot
 plot(clima$denmark, clima$greenland, main="Correlation between Denmark and Greenland", xlab="Denmark", ylab="Greenland")

@@ -11,6 +11,8 @@ output:
 ```{r "setup", include=FALSE}
 ## set working directory
 require("knitr")
+require("car")
+require("tree")
 ```
 
 The dataset process contains measurements of air flow, water temperature, and acid concentration of
@@ -27,7 +29,9 @@ acidconc | concentration of acid
 ## 1. Determine whether air flow, temperature of water, or concentration of acid influence on the process loss by a graphical comparison  
 Start by loading the data
 ```{r}
-# Code here
+process <- read.table("process.txt", header=TRUE)
+
+plot(process, panel=panel.smooth)
 ```
 
 ## 2. Determine whether air flow, temperature of water or concentration of acid influence on the process loss by analysing each variable using simple linear regression  
@@ -35,27 +39,66 @@ Start by loading the data
 Making simple regression for each variable
 
 ```{r}
-# Code here
+lmair <- lm(process$loss~process$airflow)
+lmwater <- lm(process$loss~process$watertemp)
+lmacid <- lm(process$loss~process$acidconc)
+
+summary(lmair)
+summary(lmwater)
+summary(lmacid)
 ```
 
+Plot the scatter plots
+
+```{r}
+plot(process$loss~process$airflow, xlab="Airflow", ylab="Process Loss", main="Process loss related to airflow", col=1, pch=16)
+abline(lmair)
+plot(process$loss~process$watertemp, xlab="Water Temperature", ylab="Process Loss", main="Process loss related to water temperature", col=1, pch=16)
+abline(lmwater)
+plot(process$loss~process$acidconc, xlab="Acid Concentration", ylab="Process Loss", main="Process loss related to acid concentration", col=1, pch=16)
+abline(lmacid)
+```
+
+It appears like acid concentration doesn't have an influence in process loss because of the p-value in the linear regression and the visual inspection.
 
 ## 3. Determine whether air flow, temperature of water or concentration of acid influence on the process loss using multiple linear regression  
 
 ```{r}
-# Code here
+lmall <- lm(process$loss~process$airflow+process$watertemp+process$acidconc)
+summary(lmall)
+par(mfrow=c(2,2))
+plot(lmall)
 ```
 
 ## 4. Is there evidence of multicollinearity?
 
 ```{r}
-#Code here
+cor(process)
+coplot(process$loss ~ process$watertemp | process$watertemp, process, panel = panel.smooth)
+model <- tree(process$loss ~ ., process)
+plot(model)
+text(model)
 ```
 
+It looks like airflow and water temperature are collinear/positiviely correlated.
 
 ## 5. Plot the residuals and analyse the results. Which x-variable should be removed if we want to reduce the model?
 
 
 ```{r}
-# Code here
+par(mfrow=c(2,2))
+plot(lmall)
+
+# New model without acid concentration
+lmall2 <- lm(process$loss~process$airflow+process$watertemp)
+summary(lmall2, correlation=TRUE)
+
+# New model without acid concentration and without the outlier
+process2 <- process[-21,]
+lmall3 <- lm(process2$loss~process2$airflow+process2$watertemp)
+par(mfrow=c(2,2))
+plot(lmall3)
+summary(lmall3, correlation=TRUE)
 ```
 
+We should remove acid concentration.

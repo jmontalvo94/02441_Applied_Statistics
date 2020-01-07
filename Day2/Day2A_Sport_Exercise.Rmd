@@ -11,6 +11,8 @@ output:
 ```{r "setup", include=FALSE}
 ## set working directory
 require("knitr")
+require("car")
+require("ggplot2")
 ```
 
 This dataset contains the gold medal performances in the men's long jump, high jump and discus throw
@@ -29,19 +31,127 @@ year | year with reference at 1900
 Start by loading data
 
 ```{r}
-# Code here
+sport <- read.table("sport.txt", header=TRUE)
+
+# First remove the results from 1896 and change the date to the reference
+sport <- sport[-1,]
+sport$year <- sport$year+1900
+summary(sport)
+```
+
+Plot the different sport disciplines
+
+```{r}
+# Boxplot
+par(mfrow=c(1,3))
+boxplot(sport$high.jump, main="High Jump", col=2)
+boxplot(sport$Discus.Throw, main="Discus Throw", col=3)
+boxplot(sport$long.jump, main="Long Jump", col=4)
+
+# Line plot
+par(mfrow=c(3,1))
+plot(sport$year, sport$high.jump, type="l", xlab="Year", ylab="Winning results", main="High Jump", col=2)
+plot(sport$year, sport$Discus.Throw, type="l", xlab="Year", ylab="Winning results", main="Discus Throw", col=3)
+plot(sport$year, sport$long.jump, type="l", xlab="Year", ylab="Winning results", main="Long Jump", col=4)
+
+# Scatter plot
+par(mfrow=c(1,3))
+plot(sport$year, sport$high.jump, xlab="Year", ylab="Winning results", main="High Jump", col=2, pch=16)
+plot(sport$year, sport$Discus.Throw, xlab="Year", ylab="Winning results", main="Discus Throw", col=3, pch=16)
+plot(sport$year, sport$long.jump, xlab="Year", ylab="Winning results", main="Long Jump", col=4, pch=16)
 ```
 
 ## 2. It has been suggested that the Mexico City Olympics in 1968 saw unusually good track and field performances, possibly because of the high altitude. To investigate this question we must establish some expected performance level. How would you do this?  
 
+Fit linear model with observation for long.jump 1968. 
+
+```{r}
+lmHighJump <- lm(sport$high.jump~sport$year, data=sport)
+lmDiscusThrow <- lm(sport$Discus.Throw~sport$year, data=sport)
+lmLongJump <- lm(sport$long.jump~sport$year, data=sport)
+
+summary(lmHighJump)
+summary(lmDiscusThrow)
+summary(lmLongJump)
+
+par(mfrow = c(2,2))
+plot(lmHighJump)
+plot(lmDiscusThrow)
+plot(lmLongJump)
+```
+
+Plot the linear model with observation 1968 for long jump
+
+```{r}
+# Build model again only for long jump
+lj <- sport$long.jump
+year <- sport$year
+lmLongJump <- lm(lj~year, data=sport)
+
+# Plot 95% confidence intervals for the regression line
+par(mfrow = c(1,1))
+year.new <- seq(min(year), max(year), by=0.1)
+#year.new <- c(2004)
+pred.sport <- data.frame(year = year.new)
+range.pred <- predict(lmLongJump, newdata = pred.sport, interval = "confidence")
+plot(lj ~ year, sport, pch = 19)
+lines(year.new, range.pred[,1], lw = 2)
+lines(year.new, range.pred[,2], col = 2, lw = 2)
+lines(year.new, range.pred[,3], col = 2, lw = 2)
+
+# Plot 95% prediction intervals using function matlines
+range.pred <- predict(lmLongJump, newdata = pred.sport, interval = "prediction")
+matlines(year.new, range.pred[,2:3], lty = 2, col = 3, lw = 2)
+
+# Add legend
+legend("topleft", legend = c("confidence interval","Prediction interval"), 
+       col = c(2,3), lty = c(1,2))
+```
+
 Fit linear model without observation for long.jump 1968. 
 
 ```{r}
-# Code here
+# Remove observation
+sport2 <- sport[-15,]
+
+# Linear Model
+lj <- sport2$long.jump
+year <- sport2$year
+lmLongJump <- lm(lj~year, data=sport2)
+
+summary(lmLongJump)
+
+par(mfrow = c(2,2))
+
+plot(lmLongJump)
+```
+
+Plot the linear model without observation 1968
+
+```{r}
+# Plot 95% confidence intervals for the regression line
+par(mfrow = c(1,1))
+year.new <- seq(min(year), max(year), by=0.1)
+pred.sport <- data.frame(year = year.new)
+range.pred <- predict(lmLongJump, newdata = pred.sport, interval = "confidence")
+plot(lj ~ year, sport2, pch = 19)
+lines(year.new, range.pred[,1], lw = 2)
+lines(year.new, range.pred[,2], col = 2, lw = 2)
+lines(year.new, range.pred[,3], col = 2, lw = 2)
+
+# Plot 95% prediction intervals using function matlines
+range.pred <- predict(lmLongJump, newdata = pred.sport, interval = "prediction")
+matlines(year.new, range.pred[,2:3], lty = 2, col = 3, lw = 2)
+
+# Add legend
+legend("topleft", legend = c("confidence interval","Prediction interval"), 
+       col = c(2,3), lty = c(1,2))
 ```
 
 ## 3. Could you predict the winning result in long jump for the Olympic games in Greece 2004? 
 ```{r}
-# Code here
+year.new <- c(2004)
+pred.sport <- data.frame(year = year.new)
+range.pred <- predict(lmLongJump, newdata = pred.sport, interval = "confidence")
+y2004 <- range.pred[,1]
 ```
-

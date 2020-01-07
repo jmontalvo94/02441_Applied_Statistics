@@ -11,6 +11,8 @@ output:
 ```{r "setup", include=FALSE}
 ## set working directory
 require("knitr")
+require("car")
+require("tree")
 ```
 
 
@@ -33,23 +35,44 @@ lactic | Concentration of lactic acid
 Start by loading data 
 
 ```{r}
-# Code here
+cheese <- read.table("cheese.txt", header=TRUE)
+cheese <- subset(cheese,select= taste:Lactic)
 ```
 
 Visually investigate the relation between the variables:
 
 ```{r}
-# Code here
+# Plot between variables and correlation matrix
+plot(cheese, panel=panel.smooth)
+cor(cheese)
+
+# Simple linear regression models
+lmacetic <- lm(cheese$taste~cheese$Acetic)
+lmh2s <- lm(cheese$taste~cheese$H2S)
+lmlactic <- lm(cheese$taste~cheese$Lactic)
+
+# Summary of simple linear regression models
+summary(lmacetic)
+summary(lmh2s)
+summary(lmlactic)
 ```
+
+Intercept of H2S isn't statistically significant.
 
 ## 2. Why do you think acetic and h2s has been transformed?
 
+Because acetic and h2s are concentrations which probably behave as a natural logarithm. By transforming the values of these variables we can "see" better how the variables relate to each other and with the dependent variable.
 
 ## 3. What happens when you run a regression model with all the independent variables in the model?
 
 ```{r}
-# Code here
+lmall <- lm(cheese$taste~cheese$Acetic+cheese$H2S+cheese$Lactic)
+summary(lmall)
+par(mfrow=c(2,2))
+plot(lmall)
 ```
+
+It looks like acetic acid concentration isn't statistically significant in the model.
 
 ## 4. What model would you prefer for prediction?
 ```{r}

@@ -11,6 +11,7 @@ output:
 ```{r "setup", include=FALSE}
 ## set working directory
 require("knitr")
+require("car")
 ```
 
 
@@ -29,35 +30,68 @@ brain | weight of brain (gram)
 Start by loading the data
 
 ```{r}
-# Code here
+brain <- read.table("brainweight.txt", header=TRUE)
 ```
 
 Plot body against brain
 ```{r}
-# Code here
+plot(brain$body~brain$brain, xlab="Weight of brain (g)", ylab="Weight of body (kg)", main="Correlation of body against brain weight", col=1, pch=16)
 ```
 
 ## 2. Make a log transform of both body and brain. Make a scatterplot of the transformed variables. Compute the correlation.
 
 ```{r}
-# Code here
+brain$logbody <- log(brain$body)
+brain$logbrain <- log(brain$brain)
+plot(brain$logbody~brain$logbrain, xlab="Log of weight of brain (g)", ylab="Log of weight of body (kg)", main="Correlation of body against brain weight, Log Transformed", col=1, pch=16)
 ```
 
 ## 3. Fit a regression model between log(body) and log(brain)
 
 ```{r}
-# Code here
+logbody <- brain$logbody
+logbrain <- brain$logbrain
+lmlog <- lm(logbody~logbrain, data=brain)
 ```
 
 ## 4. Is there any outlier in the data?  
 
 ```{r}
-#Code here
+summary(lmlog)
+par(mfrow=c(2,2))
+plot(lmlog)
+
+brain2 <- brain[-34,]
+logbody <- brain2$logbody
+logbrain <- brain2$logbrain
+lmlog2 <- lm(logbody~logbrain, data=brain2)
+summary(lmlog2)
+par(mfrow=c(2,2))
+plot(lmlog2)
 ```
 
 ## 5. How would you evaluate the fit of the model?
 
 ```{r}
-# Code here
+# Estimate, Standard Error, t-value, and multiple R-squared
+
+
+# Plot 95% confidence intervals for the regression line
+par(mfrow = c(1,1))
+logbrain.new <- seq(min(logbrain), max(logbrain), by=0.1)
+pred.logbrain <- data.frame(logbrain = logbrain.new)
+range.pred <- predict(lmlog2, newdata = pred.logbrain, interval = "confidence")
+plot(logbody~logbrain, brain, pch = 19)
+lines(logbrain.new, range.pred[,1], lw = 2)
+lines(logbrain.new, range.pred[,2], col = 2, lw = 2)
+lines(logbrain.new, range.pred[,3], col = 2, lw = 2)
+
+# Plot 95% prediction intervals using function matlines
+range.pred <- predict(lmlog2, newdata = pred.logbrain, interval = "prediction")
+matlines(logbrain.new, range.pred[,2:3], lty = 2, col = 3, lw = 2)
+
+# Add legend
+legend("topleft", legend = c("confidence interval","prediction interval"), 
+       col = c(2,3), lty = c(1,2))
 ```
 
