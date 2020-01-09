@@ -75,12 +75,12 @@ plot(as.numeric(grazer$treat), grazer$cover, pch=19, xlab = "Treat", ylab = "Per
 
 # Scatter with block and treat
 par(mfrow=c(1,1))
-plot(as.numeric(grazer$block), grazer$cover, col = as.numeric(grazer$block)+1, pch = as.numeric(grazer$treat)+1, xlab = "Block", ylab = "Percentage of regenerated seaweed")
+plot(as.numeric(grazer$block), grazer$cover, col = as.numeric(grazer$block)+1, pch = as.numeric(grazer$treat)+16, xlab = "Block", ylab = "Percentage of regenerated seaweed")
 #legend("center", legend = c("Boys 7th", "Boys 8th", "Girls 7th", "Girls 8th"), col = c(2,3,4,5,6,7,8,9), pch = c(2,3,4,5,6,7))
 
 # General scatter
 par(mfrow=c(1,1))
-plot(grazer$cover, col = as.numeric(grazer$block)+1, pch = as.numeric(grazer$treat)+1, xlab = "Block", ylab = "Percentage of regenerated seaweed")
+plot(grazer$cover, col = as.numeric(grazer$block)+1, pch = as.numeric(grazer$treat)+16, xlab = "Block", ylab = "Percentage of regenerated seaweed")
 #legend("topright", legend = c("Boys 7th", "Boys 8th", "Girls 7th", "Girls 8th"), col = c(2,3,4,5,6,7,8,9), pch = c(2,3,4,5,6,7))
 
 # With log transformation
@@ -98,7 +98,7 @@ plot(as.numeric(grazer$treat), grazer$logcover, pch=19, xlab = "Treat", ylab = "
 
 # General scatter with log transformation
 par(mfrow=c(1,1))
-plot(grazer$logcover, col = as.numeric(grazer$block)+1, pch = as.numeric(grazer$treat)+1, xlab = "Block", ylab = "Percentage of regenerated seaweed")
+plot(grazer$logcover, col = as.numeric(grazer$block)+1, pch = as.numeric(grazer$treat)+16, xlab = "Block", ylab = "Percentage of regenerated seaweed")
 ```
 
 From the plots, we can argue that when more grazers are present on the blocks, the seaweed regenerate less. On the contrary, the tidal activity seems to be better on the seaweed with mid-tide, while low-tide and high-tide seem harsher on the regeneration, i.e. the seaweed regenerates more with mid-tide than low- and high-tide.
@@ -135,6 +135,8 @@ par(mfrow=c(2,2))
 plot(lm2, col = grazer$block, which = 1:2, pch=19)
 plot(lm2, col = grazer$treat, which = 1:2, pch=19)
 ```
+
+We need to apply a logit transformation to our cover variable.
 
 ## 3. Is there evidence of any interaction effects?
 

@@ -26,6 +26,7 @@ b | 10.3 | -4.95 | -11
 
 ```{r}
 df <- data.frame(Fertilizer=c(rep("a",3),rep("b",3)), Field=rep(c("a","b","c"),2), Yield=c(10.3,-4.95, -6, 10.3, -4.95, -11))
+# Could've used rbind to merge two dataframes one below the other (by row) or cbind to merge datasets one next to each other (by column)
 fertilizer <- df$Fertilizer
 field <- df$Field
 yield <- df$Yield
