@@ -24,16 +24,26 @@ Single | 218 | 327 | 106 | 67 |
 
 ## 1. Type the data into R so that appropriate analysis can be carried out
 ```{r}
-# Code here
+# Input data
+caff <- matrix(c(652, 1537, 598, 242, 36, 46, 38, 21, 218, 327, 106, 67),
+              nrow = 3, dimnames = list(c("Married", "PMarried", "Single"), c("0", "1-150", "151-300", ">300")), byrow=TRUE)
+addmargins(caff)
 ```
 
 ## 2. Determine whether Caffeine consumption and Marital status are independent
 ```{r}
-# Code here
+chisq.test(caff)
+chisq1 <- chisq.test(caff)
+chisq1$expected
 ```
+
+All expected counts are bigger than 5. We fail to reject $H_0$ since the p-value is lower than $\alpha$, `chisq1$p.value` < 0.05. Therefore, caffeine consumption and marital status are dependent, i.e. women quantity of coffe consumption is dependant on marital status.
 
 ## 3. If there is dependence between Caffeine consumption and Marital status, what is the conclusion?
 ```{r}
-# COde here
+mosaicplot(caff, shade = TRUE)
 ```
 
+Married women are under-represented when not consuming caffeine.
+Previously married women are under-represented when consuming coffee in a low quantity (0-150), but over-represented when consuming a lot of coffee (151-300+).
+Single women are over-represented when not consuming coffee (0) and under-represented when drinking considerably a lot of coffee (151-300).

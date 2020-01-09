@@ -11,6 +11,7 @@ output:
 ```{r "setup", include=FALSE}
 ## set working directory
 require("knitr")
+require("dplyr")
 ```
 Subjects were students in grades 4-6 from three school districts in Ingham and Clinton Counties,
 Michigan. Chase and Dummer stratified their sample, selecting students from urban, suburban, and
@@ -35,18 +36,60 @@ Money | Rank of "having lots of money"(1=most important for popularity, 4=least 
 
 ## 1. Analyze the relationship between gender and goals.
 ```{r}
-# Code here
+df <- read.table("popular.txt", header=TRUE, sep="\t")
+df1 <- select(df,Gender,Goals)
+matrix <- table(df1)
+
+# Chi-squared
+chi1 <- chisq.test(matrix)
+chi1$expected
+chi1
+
+# Fisher test
+# fisher.test(matrix)
 ```
+
+We fail to reject $H_0$ since p-value is less than $\alpha$, i.e. `chi1$p.value` < 0.05. Therefore, variables gender and goals are dependant.
 
 ## 2. Analyze the relationship between age and goals.
 
 ```{r}
-#Code here
+df2 <- select(df,Age,Goals)
+matrix2a <- table(df2)
+
+# Chi-squared
+chi2 <- chisq.test(matrix2)
+chi2$expected
+chi2
+
+# Fisher test
+# fisher.test(matrix2)
+
+matrix2b <- matrix2a[-c(2,6),]
+matrix2b[1,] <- matrix2a[1,]+matrix2a[2,]
+matrix2b[4,] <- matrix2a[5,]+matrix2a[6,]
+dimnames(matrix2b)[[1]] <- c("7:9","10","11","12:13")
+
+# Chi-squared
+chi2b <- chisq.test(matrix2b)
+chi2b$expected
+chi2b
+mosaicplot(matrix2b, shade=TRUE)
 ```
+
+They're not dependant.
 
 ## 3. Could you suggest other analysis that may be interesting?
 
 ```{r}
-# Code here
+df3 <- select(df,Urban.Rural,Goals)
+matrix3 <- table(df3)
+
+# Chi-squared
+chi3 <- chisq.test(matrix3)
+chi3$expected
+chi3
+mosaicplot(matrix3, shade=TRUE)
 ```
 
+Rural students are under-represented in grades and over-represented in sports.

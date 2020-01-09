@@ -26,12 +26,42 @@ mat.height | mothers height (cm)
 ## 1. Make apropriate plots of the birthweight in order to check wether the weight is normally distributed
 
 ```{r}
-# Code here
+# Read data
+df <- read.table("kfm.txt", header=TRUE, row.names=1)
+df <- df[,-1]
+
+# Visual comparison of histogram with normal pdf
+par(mfrow=c(1,2))
+hist1 <- hist(df$weight, freq = FALSE, main="Histogram of birthweight", xlab="Birthweight (kg)")
+x_range <- seq(min(df$weight), max(df$weight), by = 0.01)
+lines(x_range, dnorm(x_range, mean(df$weight), sd(df$weight)), lw = 3, col = "red")
+color1 <- rgb(1,0,0, alpha = 0.5)
+# polygon(c(seq(3.5,4,0.05),4,3.5), c(dnorm(seq(3.5,4,0.05), mean(x), sd(x)),0,0), col = color1, border = color1)
+
+# Visual comparison of ecdf with normal cdf
+plot(ecdf(df$weight), main="ECDF vs. CDF of birthweight")
+lines(x_range, pnorm(x_range, mean(df$weight), sd(df$weight)), lw = 3, col = "red")
+abline(v=hist1$breaks)
 ```
+
+From the visual inspection it seems that birthweight is normally distributed.
 
 ## 2. Make a $\chi^2$-test to test if the birthweights for the babies can be assumed normally distributed
 
 ```{r}
-# Code here
+shapiro.test(df$weight)
+
+# Get expected counts for all histogram bins
+breaks <- hist1$breaks
+prob <- pnorm(c(-Inf, breaks[-c(1, length(breaks))], Inf), mean(df$weight), sd(df$weight))
+prob <- diff(prob)
+expected <- length(df$weight)*prob
+
+# Chi Square test for goodness-of-fit
+counts <- hist1$counts
+chi_obs <- sum((counts - expected)^2 / expected)
+p_value <- 1 - pchisq(chi_obs, df = length(hist1$mids) - 3) 
+
 ```
 
+Birthweight is normally distributed since p-valye is greather than $\alpha$, i.e. we fail to reject $H_0$ since `chisq1$p.value` > 0.05.

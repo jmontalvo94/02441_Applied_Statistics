@@ -32,7 +32,22 @@ Bloat | Degree of bloating and flatulence reported by the subjects
 ## 1. Analyze the relationship between the four types of cracker and the four levels of severity of bloating as reported by the subjects.  
 
 ```{r}
-#Code here
+# Edit matrix
+df <- read.table("diet.txt", header=TRUE)
+df$Diet <- NULL
+df$Subject <- NULL
+df$Digested <- NULL
+matrix <- table(df)
+
+# Chi-squared error because of expected values are < 5
+chi1 <- chisq.test(matrix)
+chi1$expected
+
+# Fisher test
+fisher.test(matrix)
+
+# Visualization
+# mosaicplot(matrix, shade=TRUE)
 ```
 
-
+Chi-squared test gives an error because expected values are less than 5. From Fisher's test, crackers and levels of bloating are not statistically significant, i.e. variables are not dependent and the null hypothesis $H_0$ is rejected.
