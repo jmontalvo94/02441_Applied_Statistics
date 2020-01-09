@@ -11,6 +11,7 @@ output:
 ```{r "setup", include=FALSE}
 ## set working directory
 require("knitr")
+require("car")
 ```
 
 
@@ -33,22 +34,105 @@ SIDE | 1 right side 2 left side of car
 
 
 ## 1. Determine whether size, type and side influence on the noise level by doing a graphical comparison
+
 Start by loading and converting data to right class
 ```{r}
-# Code here
+# Loading data and converting to factors
+filter <- read.table("filter.txt", header=TRUE)
+filter$SIZE <- factor(filter$SIZE)
+levels(filter$SIZE) <- c("small", "medium", "large")
+filter$TYPE <- factor(filter$TYPE)
+levels(filter$TYPE) <- c("standard", "octel")
+filter$SIDE <- factor(filter$SIDE)
+levels(filter$SIDE) <- c("right", "left")
+
+# Summary of the data
+summary(filter)
+
+# Structure of the data
+str(filter)
 ```
 
 Visual inspection of data
 ```{r}
-# Code here
+# Boxplot
+par(mfrow = c(1,3))
+boxplot(filter$NOISE~filter$SIZE, filter, xlab = "Size", ylab = "Noise", col = c(2,3,4))
+boxplot(filter$NOISE~filter$TYPE, filter, xlab = "Type", ylab = "Noise", col = c(7,8))
+boxplot(filter$NOISE~filter$SIDE, filter, xlab = "Side", ylab = "Noise", col = c(5,6))
+
+# Scatter plot
+par(mfrow = c(1,3))
+plot(as.numeric(filter$TYPE), filter$NOISE, pch=19)
+plot(as.numeric(filter$SIZE), filter$NOISE, pch=19)
+plot(as.numeric(filter$SIDE), filter$NOISE, pch=19)
+
+# Scatter plot combined
+par(mfrow=c(1,1))
+plot(as.numeric(filter$TYPE), filter$NOISE, col = as.numeric(filter$SIDE)+1, 
+     pch = as.numeric(filter$SIZE)+1, xlab = "Type", ylab = "Noise")
+legend("center", legend = c("RightSmall", "LeftSmall", "RightMedium", "LeftMedium", "RightLarge", "LeftLarge"), 
+       col = c(2,3), pch = c(2,2,3,3,4,4))
 ```
 ## 2. Determine whether size, type and side influence on the noise level by the appropriate statistical analysis
 ```{r}
-# Code here
+# Linear Models
+lmsize <- lm(filter$NOISE~filter$SIZE, filter)
+lmtype <- lm(filter$NOISE~filter$TYPE, filter)
+lmside <- lm(filter$NOISE~filter$SIDE, filter)
+lmall <- lm(filter$NOISE~filter$SIZE+filter$TYPE+filter$SIDE, filter)
+
+# One-way ANOVA of Size
+anova(lmsize)
+# Linear Model of Size
+summary(lmsize)
+
+# One-way ANOVA of Type
+anova(lmtype)
+# Linear Model of Type
+summary(lmtype)
+
+# One-way ANOVA of Side
+anova(lmside)
+# Linear Model of Side
+summary(lmside)
+
+# Three-way ANOVA of Size, Type, and Side
+anova(lmall)
+# Linear model of Size, Type, and Side
+summary(lmall)
 ```
+
+Size is statistically significant, i.e. means of the groups are the same.
+Type is not statistically significant (octel), i.e. means of the groups are not the same.
+Side is not statistically significant (left) , i.e. means of the groups are not the same.
+For the three-way anova, side is not statistically significant, i.e. variable side doesn't have the same mean in the groups AND it doesn't affect the noise levels.
+
+We could investigate a new model without the side variable.
+
+```{r}
+lmall_side <- lm(filter$NOISE~filter$SIZE+filter$TYPE, filter)
+# Three-way ANOVA without Side
+anova(lmall_side)
+# Linear Model of Size and Type
+summary(lmall_side)
+```
+
+Model looks better and all groups have the same mean.
 
 ## 3. Are there any interaction effects between size and type?
 ```{r}
-# Code here
+# Visualize interaction
+par(mfrow=c(1,1))
+interaction.plot(filter$SIZE, filter$TYPE, filter$NOISE, ylab="Mean of NOISE", xlab="Size", main="Interactions between Type and Size", col=c(2,3))
+
+# Linear Model
+lmall_int <- lm(filter$NOISE~filter$SIZE*filter$TYPE, filter)
+
+# Two-way ANOVA
+anova(lmall_int)
+# Linear Model of Size and Type
+summary(lmall_int)
 ```
 
+Size small for type octel and interaction between size large and type octel are not statistically significant. That means, for size, that it doesn't matter if the type of the filter is standard or octel but the size is the important feature. While the interaction of size large and type octel doesn't affect the model, we thus reject $H_0$.

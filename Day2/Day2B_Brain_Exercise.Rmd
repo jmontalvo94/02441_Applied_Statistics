@@ -34,8 +34,9 @@ brain <- read.table("brainweight.txt", header=TRUE)
 ```
 
 Plot body against brain
+
 ```{r}
-plot(brain$body~brain$brain, xlab="Weight of brain (g)", ylab="Weight of body (kg)", main="Correlation of body against brain weight", col=1, pch=16)
+plot(brain$brain~brain$body, xlab="Weight of body (kg)", ylab="Weight of brain (g)", main="Correlation of body against brain weight", col=1, pch=16)
 ```
 
 ## 2. Make a log transform of both body and brain. Make a scatterplot of the transformed variables. Compute the correlation.
@@ -43,7 +44,7 @@ plot(brain$body~brain$brain, xlab="Weight of brain (g)", ylab="Weight of body (k
 ```{r}
 brain$logbody <- log(brain$body)
 brain$logbrain <- log(brain$brain)
-plot(brain$logbody~brain$logbrain, xlab="Log of weight of brain (g)", ylab="Log of weight of body (kg)", main="Correlation of body against brain weight, Log Transformed", col=1, pch=16)
+plot(brain$logbrain~brain$logbody, xlab="Log of weight of body (kg)", ylab="Log of weight of brain (g)", main="Correlation of body against brain weight, Log Transformed", col=1, pch=16)
 ```
 
 ## 3. Fit a regression model between log(body) and log(brain)
@@ -51,7 +52,7 @@ plot(brain$logbody~brain$logbrain, xlab="Log of weight of brain (g)", ylab="Log 
 ```{r}
 logbody <- brain$logbody
 logbrain <- brain$logbrain
-lmlog <- lm(logbody~logbrain, data=brain)
+lmlog <- lm(logbrain~logbody, data=brain)
 ```
 
 ## 4. Is there any outlier in the data?  
@@ -61,13 +62,13 @@ summary(lmlog)
 par(mfrow=c(2,2))
 plot(lmlog)
 
-brain2 <- brain[-34,]
-logbody <- brain2$logbody
-logbrain <- brain2$logbrain
-lmlog2 <- lm(logbody~logbrain, data=brain2)
-summary(lmlog2)
-par(mfrow=c(2,2))
-plot(lmlog2)
+# brain2 <- brain[-34,]
+# logbody <- brain2$logbody
+# logbrain <- brain2$logbrain
+# lmlog2 <- lm(logbrain~logbody, data=brain2)
+# summary(lmlog2)
+# par(mfrow=c(2,2))
+# plot(lmlog2)
 ```
 
 ## 5. How would you evaluate the fit of the model?
@@ -78,17 +79,17 @@ plot(lmlog2)
 
 # Plot 95% confidence intervals for the regression line
 par(mfrow = c(1,1))
-logbrain.new <- seq(min(logbrain), max(logbrain), by=0.1)
-pred.logbrain <- data.frame(logbrain = logbrain.new)
-range.pred <- predict(lmlog2, newdata = pred.logbrain, interval = "confidence")
-plot(logbody~logbrain, brain, pch = 19)
-lines(logbrain.new, range.pred[,1], lw = 2)
-lines(logbrain.new, range.pred[,2], col = 2, lw = 2)
-lines(logbrain.new, range.pred[,3], col = 2, lw = 2)
+logbody.new <- seq(min(logbody), max(logbody), by=0.1)
+pred.logbody <- data.frame(logbody = logbody.new)
+range.pred <- predict(lmlog2, newdata = pred.logbody, interval = "confidence")
+plot(logbrain~logbody, brain, pch = 19)
+lines(logbody.new, range.pred[,1], lw = 2)
+lines(logbody.new, range.pred[,2], col = 2, lw = 2)
+lines(logbody.new, range.pred[,3], col = 2, lw = 2)
 
 # Plot 95% prediction intervals using function matlines
-range.pred <- predict(lmlog2, newdata = pred.logbrain, interval = "prediction")
-matlines(logbrain.new, range.pred[,2:3], lty = 2, col = 3, lw = 2)
+range.pred <- predict(lmlog2, newdata = pred.logbody, interval = "prediction")
+matlines(logbody.new, range.pred[,2:3], lty = 2, col = 3, lw = 2)
 
 # Add legend
 legend("topleft", legend = c("confidence interval","prediction interval"), 

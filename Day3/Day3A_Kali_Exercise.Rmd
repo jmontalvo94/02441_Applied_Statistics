@@ -11,6 +11,7 @@ output:
 ```{r "setup", include=FALSE}
 ## set working directory
 require("knitr")
+require("car")
 ```
 
 
@@ -27,18 +28,39 @@ kali | content of kali
 Start by loading and plotting the data
 
 ```{r}
-# Code here
+df <- read.table("kali.txt", header=TRUE)
+kali <- df$kali
+production <- df$production
+boxplot(kali ~ production, xlab = "Production Unit", ylab = "Content of kali", col = c(2,3,4,6), main="Content of kali by production unit")
+plot(as.numeric(production), kali, col = c(rep(c(2,3,4,6), each = 6)), xlab="Production Unit", ylab="Content of kali", main="Content of kali by production unit", pch=19)
 ```
+
+Non-parametric test
+
+```{r}
+kruskal.test(kali~production)
+```
+
+Distributions are the same since p-value is less than $\alpha$ = 0.05, i.e. we cannot reject $H_0$.
 
 ## 2. Use a one-way ANOVA to examine if the content of kali depends on the different productions
 
 ```{r}
-# Code here
+# Calculate one-way ANOVA
+lm1 <- lm(kali~production, df)
+anova(lm1)
+
+# Checking model assumptions
+par(mfrow = c(1,2))
+plot(lm1, col = df$production, which = 1:2, pch=19)
 ```
+
+One-way ANOVA shows that there's statistical significance of the content of kali depending on the production of different productions; the means of the different groups are the same, i.e. p > $\alpha$=0.05. The graph also shows that there's similar variance of both groups and their residuals are normally distributed.
 
 ## 3. If the content of kali depends on the different productions, which of the production(s) yield the highest content?  
 
 ```{r}
-# Code here
+summary(lm1)
 ```
 
+Production b, since the intercept is the sum of production a + production b, i.e. $10.75+8.15=18.9$.

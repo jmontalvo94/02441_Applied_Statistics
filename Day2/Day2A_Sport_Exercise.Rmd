@@ -39,7 +39,7 @@ sport$year <- sport$year+1900
 summary(sport)
 ```
 
-Plot the different sport disciplines
+Plotting the different sport disciplines
 
 ```{r}
 # Boxplot
@@ -61,22 +61,18 @@ plot(sport$year, sport$Discus.Throw, xlab="Year", ylab="Winning results", main="
 plot(sport$year, sport$long.jump, xlab="Year", ylab="Winning results", main="Long Jump", col=4, pch=16)
 ```
 
+It looks like there's a positive tendency for all three sports.
+
 ## 2. It has been suggested that the Mexico City Olympics in 1968 saw unusually good track and field performances, possibly because of the high altitude. To investigate this question we must establish some expected performance level. How would you do this?  
 
-Fit linear model with observation for long.jump 1968. 
+Fit linear model with the observation for long.jump 1968. 
 
 ```{r}
-lmHighJump <- lm(sport$high.jump~sport$year, data=sport)
-lmDiscusThrow <- lm(sport$Discus.Throw~sport$year, data=sport)
 lmLongJump <- lm(sport$long.jump~sport$year, data=sport)
 
-summary(lmHighJump)
-summary(lmDiscusThrow)
 summary(lmLongJump)
 
 par(mfrow = c(2,2))
-plot(lmHighJump)
-plot(lmDiscusThrow)
 plot(lmLongJump)
 ```
 
@@ -152,6 +148,7 @@ legend("topleft", legend = c("confidence interval","Prediction interval"),
 ```{r}
 year.new <- c(2004)
 pred.sport <- data.frame(year = year.new)
-range.pred <- predict(lmLongJump, newdata = pred.sport, interval = "confidence")
-y2004 <- range.pred[,1]
+range.pred <- unname(predict(lmLongJump, newdata = pred.sport))
 ```
+
+The predicted value is 342.62 for the long jump sport in Greece 2004.

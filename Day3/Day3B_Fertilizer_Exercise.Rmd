@@ -11,9 +11,10 @@ output:
 ```{r "setup", include=FALSE}
 ## set working directory
 require("knitr")
+require("car")
 ```
 
-In a pilot study two different fertilizers were tested on three different fields. The yeild (compared to
+In a pilot study two different fertilizers were tested on three different fields. The yield (compared to
 a reference) is given in the table below 
 
 Fertilizer/Field | a  | b |  c |   
@@ -24,14 +25,80 @@ b | 10.3 | -4.95 | -11
 ## 1. Type the data into R so that appropriate analysis can be carried out
 
 ```{r}
-# Code here
+df <- data.frame(Fertilizer=c(rep("a",3),rep("b",3)), Field=rep(c("a","b","c"),2), Yield=c(10.3,-4.95, -6, 10.3, -4.95, -11))
+fertilizer <- df$Fertilizer
+field <- df$Field
+yield <- df$Yield
 ```
 
 ## 2. Determine whether Fertilizer and/or Field influence on the yield
 Start by making a one-way anova
 
 ```{r}
-# Code here
+# Plot of the data
+par(mfrow = c(1,3))
+boxplot(yield~fertilizer, df, xlab = "Fertilizer", ylab = "Distance", col = c(2,3))
+boxplot(yield~field, df, xlab = "Field", ylab = "Distance", col=c(4,5,6))
+plot(as.numeric(fertilizer), yield, col = as.numeric(fertilizer)+1, 
+     pch = as.numeric(field), xlab = "Fertilizer", ylab = "Yield")
+legend("center", legend = c("a", "b", "c"), 
+       col = c(2,2,2,3,3,3), pch = c(1,2,3,1,2,3))
+
+# Calculate one-way ANOVA for fertilizer
+lm1a <- lm(yield~fertilizer, df)
+anova(lm1a)
+
+# Calculate one-way ANOVA for field
+lm1b <- lm(yield~field, df)
+anova(lm1b)
+
+# Checking model assumptions
+par(mfrow = c(2,2))
+plot(lm1a, col = fertilizer, which = 1:2, pch=19)
+plot(lm1b, col = field, which = 1:2, pch=19)
+
+# Two-way Anova
+# lm2 <- lm(yield~fertilizer+field, df)
+# anova(lm2)
+# par(mfrow = c(1,2))
+# plot(lm2, col = df$field, which = 1:2, pch=19)
 ```
 
+From the One-Way ANOVA, fertilizer isn't statistically significant since the p-value is > $\alpha$ = 0.05, i.e. we reject the null hypothesis $H_0$ that the means of the groups are not the same. Field, on the other hand, is statistically significant, i.e. we fail to reject the null hypothesis $H_0$, so the means of the groups are the same.
+
+Interpret the linear models
+```{r}
+# Fertilizer Linear Model
+summary(lm1a)
+# Field Linear Model
+summary(lm1b)
+```
+
+From the linear models, we can conclude that both fertilizers aren't statistically significant, i.e. we reject the null hypothesis. However, for the field data, all three fields are statistically significant, being field a the one with the highest yield and field c the lower.
+
 ## 3. Is it possible to test for interaction effects between Fertilizer and Field?
+
+```{r}
+
+lm2 <- lm(yield~fertilizer*field, df)
+# One-way ANOVA with interactions between fertilizer and field
+anova(lm2)
+# Fertilizer and Field interactions linear model
+summary(lm2)
+```
+
+No, since we have one observation by factor combination. However, we can test for combinations of fields.
+
+```{r}
+# Combining fields into "ab" and "c"
+df$Field2 <- df$Field
+levels(df$Field2) <- rep(c(rep("ab",2), "c"),2)
+field2 <- df$Field2
+lm3 <- lm(yield~fertilizer*field2, df)
+# One-way ANOVA of fertilizer and field interactions
+anova(lm3)
+# Fertilizer and Field interactions linear model
+summary(lm3)
+```
+
+Interactions aren't statistically significant.

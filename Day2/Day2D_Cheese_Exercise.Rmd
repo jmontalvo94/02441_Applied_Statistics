@@ -55,6 +55,14 @@ lmlactic <- lm(cheese$taste~cheese$Lactic)
 summary(lmacetic)
 summary(lmh2s)
 summary(lmlactic)
+
+# Scatter plot with linear regression line
+plot(cheese$taste~cheese$Acetic, main="Cheese taste vs. acetic acid concentration", xlab="Acetic Acid Concentration", ylab="Taste Score",pch=19)
+abline(lmacetic)
+plot(cheese$taste~cheese$H2S, main="Cheese taste vs. hydrogen sulfide concentration", xlab="Hydrogen Sulfide Concentration", ylab="Taste Score",pch=19)
+abline(lmh2s)
+plot(cheese$taste~cheese$Lactic, main="Cheese taste vs. lactic acid concentration", xlab="Lactic Acid Concentration", ylab="Taste Score",pch=19)
+abline(lmlactic)
 ```
 
 Intercept of H2S isn't statistically significant.
@@ -104,10 +112,10 @@ range.pred <- unname(range.pred)
 ## 6. Could there be some problems with the above prediction?
 
 ```{r}
-plot(cheese$taste~cheese$Acetic, ylim=c(0,70))
+plot(cheese$taste~cheese$Acetic, ylim=c(0,70), pch=19)
 points(taste.new[1],range.pred, col="red", pch=19)
-plot(cheese$taste~cheese$H2S, ylim=c(0,70))
+plot(cheese$taste~cheese$H2S, ylim=c(0,70), pch=19)
 points(taste.new[2],range.pred, col="red", pch=19)
-plot(cheese$taste~cheese$Lactic, xlim=c(0,3), ylim=c(0,70))
+plot(cheese$taste~cheese$Lactic, xlim=c(0,3), ylim=c(0,70), pch=19)
 points(taste.new[3],range.pred, col="red", pch=19)
 ```

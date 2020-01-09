@@ -74,7 +74,7 @@ plot(lmall)
 
 ```{r}
 cor(process)
-coplot(process$loss ~ process$watertemp | process$watertemp, process, panel = panel.smooth)
+coplot(process$loss ~ process$airflow | process$watertemp, process, panel = panel.smooth)
 model <- tree(process$loss ~ ., process)
 plot(model)
 text(model)
@@ -99,6 +99,8 @@ lmall3 <- lm(process2$loss~process2$airflow+process2$watertemp)
 par(mfrow=c(2,2))
 plot(lmall3)
 summary(lmall3, correlation=TRUE)
+par(mfrow=c(1,1))
+boxplot(lmall3$residuals)
 ```
 
 We should remove acid concentration and the outlier.
