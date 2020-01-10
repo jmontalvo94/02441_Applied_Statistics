@@ -10,6 +10,7 @@ output:
 ```{r "setup", include=FALSE}
 ## set working directory
 require("knitr")
+require("car")
 ```
 
 This dataset holds several facts about 77 companies selected from the Forbes 500 list for 1986. This is a
@@ -34,13 +35,79 @@ Sector | Type of market the company is associated with
 ## 1. Investigate the relation between Log(Sales) predicted by Log(Assets)
 
 ```{r}
-# Code here
+df <- read.table("forbes.txt", header=TRUE, sep="\t")
+df$logsales <- log(df$Sales)
+df$logassets <- log(df$Assets)
+
+# Boxplot
+par(mfrow = c(1,2))
+boxplot(df$logsales, main="Log(Sales)", col=2)
+boxplot(df$logassets, main="Log(Assets)", col=3)
+
+# Scatter
+par(mfrow = c(1,1))
+plot(df$logassets, df$logsales, xlab="Log(Assets)", ylab = "Log(Sales)", col = c(2,3), pch=19)
+
+# Linear Model
+lm1 <- lm(df$logsales~df$logassets, df)
+summary(lm1)
+par(mfrow = c(2,2))
+plot(lm1, col=as.numeric(df$sector), pch=19)
 ```
 
 ## 2. Include Sector as a discrete factor in the model - what is your conclusion?
 
 ```{r}
-# Code here
+# Look at data
+df2 <- subset(df, select=c(logsales, logassets, sector))
+pairs(df2, panel = panel.smooth, col = df2$sector, pch=19)
+
+# Box plot
+par(mfrow = c(1,2))
+boxplot(df$logsales ~ df$sector, df, ylab = "Log(Sales)", col=df$sector)
+boxplot(df$logassets ~ df$sector, df, ylab = "Assets", col=df$sector)
+
+# Linear Model with interactions between logassets and sector
+lm2 <- lm(df$logsales~df$logassets*df$sector, df)
+Anova(lm2)
+par(mfrow = c(2,2))
+plot(lm2, col=as.numeric(df$sector), pch=19)
+drop1(lm2, test = "F")
+
+# Linear Model without interactions but with both logassets and sector
+lm3 <- lm(df$logsales~df$logassets+df$sector, df)
+Anova(lm3)
+par(mfrow = c(2,2))
+plot(lm3, col=as.numeric(df$sector), pch=19)
 ```
 
+From the Ancova, we should remove the interaction between logassets and sector. However, we should include them independently.
+
 ## 3. Are other variables significant?
+
+```{r}
+# Look at data
+df3 <- df[,-c(1,2,3)]
+pairs(df3, panel = panel.smooth, col=df3$sector, pch=19)
+
+lm4a <- lm(df3$logsales~., df3)
+Anova(lm4a)
+
+# lm5 <- lm(df3$logsales~.^2, df3)
+# drop1(lm5, test = "F")
+# Anova(lm5)
+
+lm4b <- update(lm4a, df3$logsales~.-Market.Value)
+Anova(lm4b)
+summary (lm4b)
+
+df4 <- df3[,-1]
+pairs(df4,panel=panel.smooth, col=df4$sector, pch=19)
+
+lm5 <- lm(df4$logsales~.^2, df4)
+Anova(lm5)
+collinear <- alias(lm5)
+summary(lm5)
+```
+
+Yes, profits, cash flow and employees.

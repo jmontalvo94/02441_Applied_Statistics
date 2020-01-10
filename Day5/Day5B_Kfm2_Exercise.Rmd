@@ -29,3 +29,58 @@ mat.height | mothers height (cm)
 Of special interest is to investigate whether the effect of dl.milk, ml.suppl, mat.weight and
 mat.height are different for boys and girls. Remember that the stages in model building includes
 appropriate descriptive statistics, parameter estimation and testing, as well as model validation.
+
+```{r}
+# Load data and change
+df <- read.table("kfm.txt", header=TRUE)
+df <- df[,-c(1,2)]
+df$ml.suppl <- sqrt(df$ml.suppl/100)
+pairs(df, col=as.numeric(df$sex)+3, pch=19)
+
+# Less than 18 is under-weight, more than 25 is obese
+df$bmi <- df$mat.weight/(df$mat.height/100)^2
+df <- df[,-c(5,6)]
+pairs(df, col=as.numeric(df$sex)+3, pch=19)
+
+# ml supplement
+# df$logsupp <- log(df$ml.suppl)
+
+# Scatter plots
+par(mfrow=c(2,2))
+plot(df$weight~df$dl.milk, col=as.numeric(df$sex)+3, ylab="Weight (kg)", xlab="Amount of breast milk (dl)", pch=19,)
+plot(df$weight~df$ml.suppl, col=as.numeric(df$sex)+3, ylab="Weight (kg)", xlab="Amount of milk supplement (dl)", pch=19)
+# plot(df$weight~df$logsupp, col=as.numeric(df$sex)+3, ylab="Weight (kg)", xlab="Amount of milk supplement (dl)", pch=19)
+plot(df$weight~df$bmi, col=as.numeric(df$sex)+3, ylab="Weight (kg)", xlab="Mother's BMI", pch=19)
+
+# Box plots
+par(mfrow=c(1,4))
+boxplot(as.numeric(df$sex), df$weight, col=c(4,5), ylab="Weight (kg)")
+boxplot(as.numeric(df$sex), df$dl.milk, col=c(4,5), ylab="Breast Milk (dl)")
+boxplot(as.numeric(df$sex), df$ml.suppl, col=c(4,5), ylab="Milk Supplement (dl)")
+boxplot(as.numeric(df$sex), df$bmi, col=c(4,5), ylab="BMI")
+
+par(mfrow=c(2,2))
+qqPlot(df$weight, pch=19, col=as.numeric(df$sex)+3)
+qqPlot(df$dl.milk, pch=19, col=as.numeric(df$sex)+3)
+qqPlot(df$ml.suppl, pch=19, col=as.numeric(df$sex)+3)
+qqPlot(df$bmi, pch=19, col=as.numeric(df$sex)+3)
+```
+
+Data
+
+```{r}
+# Load data and change
+lm1 <- lm(df$weight~.^2,df)
+Anova(lm1)
+summary(lm1)
+par(mfrow=c(2,2))
+plot(lm1, pch=19)
+
+lm2 <- lm(df$weight~.,df)
+Anova(lm2)
+par(mfrow=c(2,2))
+plot(lm2, pch=19)
+
+lm3 <- lm(df$weight~df$sex*(df$dl.milk+df$ml.suppl)
+Anova(lm3)
+```
