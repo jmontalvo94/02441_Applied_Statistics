@@ -1,7 +1,7 @@
 ---
 output:
-  html_document: default
   pdf_document: default
+  html_document: default
 ---
 
 ## 02441 Applied Statistics and Statistical Software 
@@ -29,6 +29,7 @@ mat.height | mothers height (cm)
 # Read data
 df <- read.table("kfm.txt", header=TRUE, row.names=1)
 df <- df[,-1]
+head(df)
 
 # Visual comparison of histogram with normal pdf
 par(mfrow=c(1,2))
@@ -42,6 +43,9 @@ color1 <- rgb(1,0,0, alpha = 0.5)
 plot(ecdf(df$weight), main="ECDF vs. CDF of birthweight")
 lines(x_range, pnorm(x_range, mean(df$weight), sd(df$weight)), lw = 3, col = "red")
 abline(v=hist1$breaks)
+
+# Could've added qqplot to check for normality
+qqPlot()
 ```
 
 From the visual inspection it seems that birthweight is normally distributed.
@@ -57,11 +61,15 @@ prob <- pnorm(c(-Inf, breaks[-c(1, length(breaks))], Inf), mean(df$weight), sd(d
 prob <- diff(prob)
 expected <- length(df$weight)*prob
 
+# Expected values are below 5, we need to adjust the bins
+
 # Chi Square test for goodness-of-fit
 counts <- hist1$counts
 chi_obs <- sum((counts - expected)^2 / expected)
 p_value <- 1 - pchisq(chi_obs, df = length(hist1$mids) - 3) 
 
+# Expected values
+
 ```
 
-Birthweight is normally distributed since p-valye is greather than $\alpha$, i.e. we fail to reject $H_0$ since `chisq1$p.value` > 0.05.
+Birthweight is normally distributed since p-valye is greather than $\alpha$, i.e. we fail to reject $H_0$ since `r p_value` > 0.05.

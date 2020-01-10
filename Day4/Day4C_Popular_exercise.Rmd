@@ -38,12 +38,15 @@ Money | Rank of "having lots of money"(1=most important for popularity, 4=least 
 ```{r}
 df <- read.table("popular.txt", header=TRUE, sep="\t")
 df1 <- select(df,Gender,Goals)
-matrix <- table(df1)
+matrix1 <- table(df1)
 
 # Chi-squared
-chi1 <- chisq.test(matrix)
+chi1 <- chisq.test(matrix1)
 chi1$expected
 chi1
+
+# Visualization
+mosaicplot(matrix1, shade=TRUE)
 
 # Fisher test
 # fisher.test(matrix)
@@ -58,7 +61,7 @@ df2 <- select(df,Age,Goals)
 matrix2a <- table(df2)
 
 # Chi-squared
-chi2 <- chisq.test(matrix2)
+chi2 <- chisq.test(matrix2a)
 chi2$expected
 chi2
 
