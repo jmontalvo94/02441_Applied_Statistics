@@ -17,6 +17,28 @@ df <- data
 df$Stock <- as.factor(paste(as.character(df$DetStock),as.character(df$CaStock)))
 df <- df[,-c(4,5)]
 
+
+# Transformations ---------------------------------------------------------
+
+# Testing
+par(mfrow=c(1,1))
+y <- sort(unique(data$EnzymeConc))
+x <- 0:3
+plot(y~x, pch=19, ylim=c(0,20))
+lines(x,exp(x))
+par(mfrow=c(1,1))
+y <- c(y[1],log(y[y>0]))
+plot(x,y, col=2, type="l")
+lm <- lm(y~x)
+lines(x, predict(lm), col=3)
+
+# Transforming the data
+data$EnzymeConc <- log(data$EnzymeConc)
+data$EnzymeConc[data$EnzymeConc=="-Inf"] <- 0
+df$EnzymeConc <- log(df$EnzymeConc)
+df$EnzymeConc[df$EnzymeConc=="-Inf"] <- 0
+
+
 # Summary Statistics ------------------------------------------------------
 
 # Structure and summary of both data frames
@@ -39,19 +61,7 @@ par(mfrow=c(1,1))
 plot(df$Response~df$Stock)
 
 
-# Transformations ---------------------------------------------------------
-
-par(mfrow=c(1,1))
-y <- sort(unique(data$EnzymeConc))
-x <- 0:3
-plot(y~x)
-lm <- lm(y~x)
-lines(x,predict(lm))
-summary(lm)
-
-
 # Model selection (1) ------------------------------------------------------
-
 
 # Testing response given detergent and hardness for data 
 lm1a <- lm(data$Response~data$DetStock)
@@ -75,7 +85,7 @@ lm1f <- lm(data$Response~data$DetStock*data$Enzyme)
 Anova(lm1f)
 step(lm1f)
 
-# Add enzyme concentration
+# Interaction between detergent and enzyme doesn't seem to be significant, add enzyme concentration
 lm1g <- lm(data$Response~data$DetStock+data$Enzyme+data$EnzymeConc)
 Anova(lm1g)
 
@@ -100,14 +110,15 @@ lm1k <- update(lm1j, ~.-data$DetStock:data$Enzyme:data$EnzymeConc)
 Anova(lm1k)
 
 drop1(lm1k, test="F")
-step(lm1j,k=2) # We get the same model by backward selection, thus lm1k is our selected model for the complete dataframe
+step(lm1j,k=3.8) # We get the same model by backward selection, thus lm1k is our selected model for the complete dataframe
 
 # Full interactions with hardness
 lm1l <- lm(data$Response~data$Enzyme*data$EnzymeConc*data$DetStock*data$CaStock)
-step(lm1l)
+step(lm1l, k=3.8)
 
-AIC(lm1a, lm1b, lm1c, lm1d, lm1e, lm1f, lm1g, lm1h, lm1i, lm1k)
-BIC(lm1a, lm1b, lm1c, lm1d, lm1e, lm1f, lm1g, lm1h, lm1i, lm1k)
+AIC(lm1a, lm1b, lm1c, lm1d, lm1e, lm1f, lm1g, lm1h, lm1i, lm1k, lm1l)
+BIC(lm1a, lm1b, lm1c, lm1d, lm1e, lm1f, lm1g, lm1h, lm1i, lm1k, lm1l)
+
 
 # Model Selection (2) -----------------------------------------------------
 
@@ -152,13 +163,14 @@ drop1(lm2i, test="F")
 
 step(lm2h,k=2) # We get the same model by backward selection, thus lm2i is our selected model for the complete dataframe
 
-AIC(lm1a, lm1b, lm1c, lm1d, lm1e, lm1f, lm1g, lm1h, lm1i, lm1k, lm2a, lm2b, lm2c, lm2d, lm2e, lm2f, lm2g, lm2h, lm2i)
-BIC(lm1a, lm1b, lm1c, lm1d, lm1e, lm1f, lm1g, lm1h, lm1i, lm1k, lm2a, lm2b, lm2c, lm2d, lm2e, lm2f, lm2g, lm2h, lm2i)
+AIC(lm1a, lm1b, lm1c, lm1d, lm1e, lm1f, lm1g, lm1h, lm1i, lm1k, lm1l, lm2a, lm2b, lm2c, lm2d, lm2e, lm2f, lm2g, lm2h, lm2i)
+BIC(lm1a, lm1b, lm1c, lm1d, lm1e, lm1f, lm1g, lm1h, lm1i, lm1k, lm1l, lm2a, lm2b, lm2c, lm2d, lm2e, lm2f, lm2g, lm2h, lm2i)
 
 AIC(lm1k, lm2i)
 BIC(lm1k, lm2i)
 
 # It seems that lm1k is better (without the hardness of the water)
+
 
 # Testing the model -------------------------------------------------------
 
