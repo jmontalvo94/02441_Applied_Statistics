@@ -5,6 +5,9 @@
 
 # Authors: Begoña Bolos Sierra, Laura Sans Comerma, Jorge Montalvo Arvizu
 
+
+# Load Data ---------------------------------------------------------------
+
 require("car")
 require("ggplot2")
 
@@ -50,15 +53,53 @@ summary(df)
 
 # Data Visualization ------------------------------------------------------
 
-# Data visualization of summary statistics of both data frames
+# setwd("~/Github/02441_Applied_Statistics/Case1/4_Images")
+
+# Pairs plot
 pairs(data, col=as.numeric(data$Enzyme)+1, pch=19)
 par(mfrow=c(1,2))
-plot(data$Response~data$DetStock)
-plot(data$Response~data$CaStock)
+plot(data$Response~data$DetStock, ylab="Response", xlab="Detergent")
+plot(data$Response~data$CaStock, ylab="Response", xlab="Hardness")
 
 pairs(df, col=as.numeric(df$Enzyme)+1, pch=19)
 par(mfrow=c(1,1))
 plot(df$Response~df$Stock)
+
+cols <- c("black","red", "blue", "green")
+col_bg <- adjustcolor(cols, alpha = 0.2) 
+cols2 <- c("black","red", "blue", "green",6)
+col_bg2 <- adjustcolor(cols2, alpha = 0.2) 
+cols3 <- c("black","red")
+col_bg3 <- adjustcolor(cols3, alpha = 0.2) 
+
+par(mfrow=c(1,1))
+
+# Response - Enzyme
+boxplot(Response~Enzyme, data=data, xlab="Enzyme type", ylab="Protein removal (RU)", 
+        col=col_bg2, medcol=cols2, whiskcol=cols2, staplecol=cols2, boxcol=cols2, outcol=cols2, outbg=cols2)
+# Response - concentration
+boxplot(Response~EnzymeConc, data=data, xlab="Enzyme Concentration log(nM)", ylab="Protein removal (RU)", 
+        col=col_bg, medcol=cols, whiskcol=cols, staplecol=cols, boxcol=cols, outcol=cols,outbg=cols )
+
+# Response - Enzyme - Concentration
+par(mfrow = c(1,1))
+b <- boxplot(Response ~  EnzymeConc + Enzyme, data = data, xaxt = "n", xlab="Enzyme type",
+             col= col_bg, medcol=cols, whiskcol=cols, staplecol=cols, boxcol=cols, outcol=cols,outbg=cols, 
+             names =c("","","A","","","","B","","","","C","","","","D","","","","E",""))
+axis(side= 1, at=seq_along(b$names), tick = FALSE, labels = b$names)
+legend("topright",title="Enzyme concentration", legend = c(0, 2.5, 7.5, 15), fill =cols, horiz =TRUE, cex=0.8)
+
+# Response  - Stock
+par(mfrow = c(1,1))
+boxplot(Response~Stock , data=df, xlab="Conditions (Detergent and Ca combinations)", ylab="Protein removal (RU)", 
+        col=col_bg3, medcol=cols3, whiskcol=cols3, staplecol=cols3, boxcol=cols3, outcol=cols3,outbg=cols3 )
+
+#png(filename="Response per concentration.png", width=750, height=750)
+par(mfrow=c(2,2))
+for (i in y){
+  plot(data$Response[data$EnzymeConc==i], pch=as.numeric(data$DetStock[data$EnzymeConc==i])+14, col=as.numeric(data$Enzyme[data$EnzymeConc==i]), ylab="Response", xlab="Observations", main=paste("Enzyme concentration: ",exp(i)))
+}
+#dev.off()
 
 
 # Model selection (1) ------------------------------------------------------
@@ -182,18 +223,9 @@ data <- data[-c(147,159),]
 lm1k <- lm(data$Response~data$DetStock*data$Enzyme*data$EnzymeConc)
 lm1k <- update(lm1k, ~.-data$DetStock:data$Enzyme:data$EnzymeConc)
 
-setwd("~/Github/02441_Applied_Statistics/Case1/4_Images")
-
 Anova(lm1k)
 summary(lm1k, correlation=TRUE)
-png(filename="LinearModel_Transformed.png", width=750, height=750)
+#png(filename="LinearModel_Transformed.png", width=750, height=750)
 par(mfrow=c(2,2))
 plot(lm1k, col=as.numeric(data$Enzyme)+1, pch=19)
-dev.off()
-
-png(filename="Response per concentration.png", width=750, height=750)
-par(mfrow=c(2,2))
-for (i in y){
-plot(data$Response[data$EnzymeConc==i], pch=as.numeric(data$DetStock[data$EnzymeConc==i])+14, col=as.numeric(data$Enzyme[data$EnzymeConc==i]), ylab="Response", xlab="Observations", main=paste("Enzyme concentration: ",exp(i)))
-}
-dev.off()
+#dev.off()
