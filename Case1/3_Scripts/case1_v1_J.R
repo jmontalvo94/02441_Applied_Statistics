@@ -32,7 +32,7 @@ plot(x,y, col=2, type="l")
 lm <- lm(y~x)
 lines(x, predict(lm), col=3)
 
-# could be square root or log, log gives a lower residual
+# Could be square root or log, log gives a lower residual in this graph but in the model the residual is better with the sqrt
 
 # Summary Statistics ------------------------------------------------------
 
@@ -144,7 +144,7 @@ step(lm1j,k=3.8) # We get the same model by backward selection, thus lm1k is our
 
 # Full interactions with hardness
 lm1l <- lm(data$Response~data$Enzyme*data$EnzymeConc*data$DetStock*data$CaStock)
-step(lm1l, k=3.8)
+step(lm1l, k=2)
 
 AIC(lm1a, lm1b, lm1c, lm1d, lm1e, lm1f, lm1g, lm1h, lm1i, lm1k)
 BIC(lm1a, lm1b, lm1c, lm1d, lm1e, lm1f, lm1g, lm1h, lm1i, lm1k)
@@ -373,7 +373,25 @@ qqPlot(lm3k)
 # Should we remove the outliers?
 # data <- data[-147,]
 # data <- data[-159,]
-# data <- data[-c(147,159),]
-# lm3k <- lm(data$Response~data$DetStock*data$Enzyme*data$EnzymeConc)
-# lm3k <- update(lm2k, ~.-data$DetStock:data$Enzyme:data$EnzymeConc)
-# lm3k <- update(lm2k, ~.-data$DetStock:data$EnzymeConc)
+data <- data[-c(147,159),]
+lm3k <- lm(data$Response~data$DetStock*data$Enzyme*data$EnzymeConc)
+lm3k <- update(lm2k, ~.-data$DetStock:data$Enzyme:data$EnzymeConc)
+lm3k <- update(lm2k, ~.-data$DetStock:data$EnzymeConc)
+
+qqPlot(lm3k$residuals)
+shapiro.test(lm3k$residuals)
+# Residuals are normally distributed since p-value
+
+
+# Confidence Interval -----------------------------------------------------
+
+
+# Adding time -------------------------------------------------------------
+
+data <- read.table("~/Github/02441_Applied_Statistics/Case1/2_Data/SPR.txt", header = TRUE, sep="\t")
+data <- data[data$EnzymeConc==0,]
+data <- data[,-c(2,4,5,7)]
+
+pairs(data)
+
+lm4a <- lm(data$Response~data$RunDate*data$DetStock)
