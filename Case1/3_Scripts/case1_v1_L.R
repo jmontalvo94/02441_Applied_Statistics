@@ -9,6 +9,7 @@
 # Load Data ---------------------------------------------------------------
 
 require("car")
+require("xtable")
 #require("ggplot2") Creo q no lo  usamos al final
 
 # Load data and clean
@@ -22,18 +23,22 @@ df <- df[,-c(4,5)]
 
 
 # Transformations ---------------------------------------------------------
+setwd("~/Github/02441_Applied_Statistics/Case1/4_Images")
 
 # Testing
-par(mfrow=c(1,1))
 y <- sort(unique(data$EnzymeConc))
 x <- 0:3
-plot(y~x, pch=19, ylim=c(0,20))
-lines(x,exp(x))
+png(filename="test1_1.png", width=750, height=750)
 par(mfrow=c(1,1))
-y <- c(y[1],log(y[y>0]))
-plot(x,y, col=2, type="l")
-lm <- lm(y~x)
-lines(x, predict(lm), col=3)
+y2 <- c(y[1],log(y[y>0]))
+plot(x,y2, col=2, type="l", lwd=2, ylab='y', xlab='x',ylim=c(0,20),cex.axis=1.5)
+lm <- lm(y2~x)
+lines(x, predict(lm), col=3,lwd=2)
+lines(x,exp(x), col=4, lty= 2, lwd=2)
+points(y~x, pch=19)
+legend("topleft", legend = c("Logarithmic transformation", "Predicted linear model", "Exponential transformation", "Raw data"),
+       col = c(2,3,4,1), lty=c(1,1,2,NA),lwd=3,pch=c(NA,NA,NA,19), cex=1.5)
+dev.off()
 
 # Transforming the data
 data$EnzymeConc <- log(data$EnzymeConc)
@@ -46,15 +51,14 @@ df$EnzymeConc[df$EnzymeConc=="-Inf"] <- 0
 
 # Structure and summary of both data frames
 str(data)
-summary(data)
+sum1 <- summary(data)
+print(xtable(sum1, type = "latex"), file = "summary1.tex")
 str(df)
-summary(df)
+sum2<- summary(df)
+print(xtable(sum2, type = "latex"), file = "summary2.tex")
 
 
 # Data Visualization ------------------------------------------------------
-
-# setwd("~/Github/02441_Applied_Statistics/Case1/4_Images")
-
 # Set up colors
 cols <- c("black","red", "blue", "green")
 col_bg <- adjustcolor(cols, alpha = 0.2) 
@@ -64,44 +68,59 @@ cols3 <- c("black","red")
 col_bg3 <- adjustcolor(cols3, alpha = 0.2) 
 
 # Pairs plot
-
+png(filename="pairs_1.png", width=750, height=750)
 pairs(data, col=as.numeric(data$Enzyme)+1, pch=19)
+dev.off()
 
+png(filename="bp_response_stock_1.png", width=750, height=750)
 par(mfrow=c(1,2))
 plot(data$Response~data$DetStock, ylab="Response", xlab="Detergent",
      col=col_bg3, medcol=cols3, whiskcol=cols3, staplecol=cols3, boxcol=cols3, outcol=cols3,outbg=cols3)
 plot(data$Response~data$CaStock, ylab="Response", xlab="Hardness",
      col=col_bg3, medcol=cols3, whiskcol=cols3, staplecol=cols3, boxcol=cols3, outcol=cols3,outbg=cols3)
+dev.off()
 
+png(filename="pairs_2.png", width=750, height=750)
 pairs(df, col=as.numeric(df$Enzyme)+1, pch=19)
+dev.off()
 
 # Response  - Stock
+png(filename="bp_response_stock_2.png", width=750, height=750)
 par(mfrow=c(1,1))
 boxplot(Response~Stock , data=df, xlab="Conditions (Detergent and Ca2++ combinations)", ylab="Protein removal (RU)", 
         col=col_bg3, medcol=cols3, whiskcol=cols3, staplecol=cols3, boxcol=cols3, outcol=cols3,outbg=cols3 )
+dev.off()
 
 # Response - Enzyme
+png(filename="bp_response_enzyme.png", width=750, height=750)
 boxplot(Response~Enzyme, data=df, xlab="Enzyme type", ylab="Protein removal (RU)", 
         col=col_bg2, medcol=cols2, whiskcol=cols2, staplecol=cols2, boxcol=cols2, outcol=cols2, outbg=cols2)
+dev.off()
 
 # Response - concentration
-boxplot(Response~EnzymeConc, data=data, xlab="Enzyme Concentration log(nM)", ylab="Protein removal (RU)", 
-        col=col_bg, medcol=cols, whiskcol=cols, staplecol=cols, boxcol=cols, outcol=cols,outbg=cols)
+png(filename="bp_response_conc.png", width=750, height=750)
+a <- boxplot(Response~EnzymeConc, data=data, xlab="Enzyme Concentration log(nM)", ylab="Protein removal (RU)", 
+        col=col_bg, medcol=cols, whiskcol=cols, staplecol=cols, boxcol=cols, outcol=cols,outbg=cols,
+        names=c(0,2.5, 7.5,15))
+axis(side= 1, at=seq_along(a$names), tick = FALSE, labels = a$names)
+dev.off()
 
 # Response - Enzyme - Concentration
+png(filename="bp_response_enzyme_conc.png", width=750, height=750)
 par(mfrow = c(1,1))
 b <- boxplot(Response ~  EnzymeConc + Enzyme, data = data, xaxt = "n", xlab="Enzyme type",
              col= col_bg, medcol=cols, whiskcol=cols, staplecol=cols, boxcol=cols, outcol=cols,outbg=cols, 
              names =c("","","A","","","","B","","","","C","","","","D","","","","E",""))
 axis(side= 1, at=seq_along(b$names), tick = FALSE, labels = b$names)
 legend("topright",title="Enzyme concentration", legend = c(0, 2.5, 7.5, 15), fill =cols, horiz =TRUE, cex=0.8)
+dev.off()
 
-#png(filename="Response per concentration.png", width=750, height=750)
+png(filename="responseXconcentration.png", width=750, height=750)
 par(mfrow=c(2,2))
-for (i in y){
+for (i in y2){
   plot(data$Response[data$EnzymeConc==i], pch=as.numeric(data$DetStock[data$EnzymeConc==i])+14, col=as.numeric(data$Enzyme[data$EnzymeConc==i]), ylab="Response", xlab="Observations", main=paste("Enzyme concentration: ",exp(i), "nM"))
 }
-#dev.off()
+dev.off()
 
 
 # Model selection (1) ------------------------------------------------------
@@ -216,9 +235,11 @@ BIC(lm1k, lm2i)
 
 
 # Outlier detection -------------------------------------------------------
+png(filename="outlier_detect.png", width=750, height=750)
 par(mfrow=c(1,1))
 qqPlot(lm1k)
 data <- data[-c(147,159),]
+dev.off()
 
 # Testing the model -------------------------------------------------------
 
@@ -227,7 +248,8 @@ lm1k <- update(lm1k, ~.-data$DetStock:data$Enzyme:data$EnzymeConc)
 
 Anova(lm1k)
 summary(lm1k, correlation=TRUE)
-#png(filename="LinearModel_Transformed.png", width=750, height=750)
+png(filename="LinearModel_Transformed.png", width=750, height=750)
 par(mfrow=c(2,2))
 plot(lm1k, col=as.numeric(data$Enzyme)+1, pch=19)
-#dev.off()
+dev.off()
+
