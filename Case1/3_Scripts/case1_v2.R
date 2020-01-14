@@ -10,28 +10,32 @@
 
 require("car")
 require("ggplot2")
+require("xtable")
 
 # Load data and clean
 data <- read.table("~/Github/02441_Applied_Statistics/Case1/2_Data/SPR.txt", header = TRUE, sep="\t")
-data <- data[,-c(1,2)]
+df <- data
+df$Stock <- as.factor(paste(as.character(df$DetStock),as.character(df$CaStock)))
 
 
 # Tests ---------------------------------------------------------
 
 # Testing
+#png(filename="test1_1.png", width=1750, height=1550, res=300)
 par(mfrow=c(1,1))
-z <- sort(unique(data$EnzymeConc))
 y <- sort(unique(data$EnzymeConc))
 x <- 0:3
-plot(y~x, pch=19, ylim=c(0,20))
-lines(x,exp(x))
-lines(x,x^2)
 par(mfrow=c(1,1))
-y <- sqrt(y)
-y <- c(y[1],log(y[y>0]))
-plot(x,y, col=2, type="l")
-lm <- lm(y~x)
-lines(x, predict(lm), col=3)
+y2 <- sqrt(y)
+plot(x,y2, col=2, type="l", lwd=1, ylab='y', xlab='x',ylim=c(0,20),cex.axis=1)
+lm <- lm(y2~x)
+lines(x, predict(lm), col=3,lwd=1)
+lines(x,x^2, col=4, lty= 2, lwd=1)
+lines(x,exp(x), col=6, lty= 2, lwd=1)
+points(y~x, pch=19,cex=0.7)
+legend("topleft", legend = c("Transformed data - sqrt(y)", "Predicted linear model", "Square Root Function", "Logarithmic Function","Raw data"),
+       col = c(2,3,4,6,1), lty=c(1,1,2,2,NA),lwd=1,pch=c(NA,NA,NA,NA,19), cex=0.8)
+#dev.off()
 
 # Could be square root or log, log gives a lower residual in this graph but in the model the residual is better with the sqrt
 
@@ -39,19 +43,15 @@ lines(x, predict(lm), col=3)
 
 # Structure and summary of both data frames
 str(data)
-summary(data)
-
+sum1 <- summary(data)
+print(xtable(sum1, type = "latex"), file = "summary1.tex")
+data <- data[,-c(1,2)]
 
 # Data Visualization ------------------------------------------------------
 
 # setwd("~/Github/02441_Applied_Statistics/Case1/4_Images")
 
-# Pairs plot
-pairs(data, col=round(as.numeric(data$EnzymeConc))+2, pch=as.numeric(data$DetStock)+16)
-par(mfrow=c(1,2))
-plot(data$Response~data$DetStock, ylab="Response", xlab="Detergent")
-plot(data$Response~data$CaStock, ylab="Response", xlab="Hardness")
-
+#Set up colors
 cols <- c("black","red", "blue", "green")
 col_bg <- adjustcolor(cols, alpha = 0.2) 
 cols2 <- c("black","red", "blue", "green",6)
@@ -59,26 +59,53 @@ col_bg2 <- adjustcolor(cols2, alpha = 0.2)
 cols3 <- c("black","red")
 col_bg3 <- adjustcolor(cols3, alpha = 0.2) 
 
+# Pairs plot
+#png(filename="pairs_1.png", width=1750, height=1750, res=300)
+pairs(data, col=round(as.numeric(data$EnzymeConc))+2, pch=as.numeric(data$DetStock)+16)
+#dev.off
+
+#png(filename="bp_response_stock_1.png", width=1750, height=1750, res=300)
+par(mfrow=c(1,2))
+plot(data$Response~data$DetStock, ylab="Response", xlab="Detergent",
+     col=col_bg3, medcol=cols3, whiskcol=cols3, staplecol=cols3, boxcol=cols3, outcol=cols3,outbg=cols3)
+plot(data$Response~data$CaStock, ylab="Response", xlab="Hardness",
+     col=col_bg3, medcol=cols3, whiskcol=cols3, staplecol=cols3, boxcol=cols3, outcol=cols3,outbg=cols3)
+#dev.off()
+
+# Response  - Stock
+#png(filename="bp_response_stock_2.png", width=1750, height=1750, res=300)
 par(mfrow=c(1,1))
+boxplot(Response~Stock , data=df, xlab="Conditions (Detergent and Ca2++ combinations)", ylab="Protein removal (RU)", 
+        col=col_bg3, medcol=cols3, whiskcol=cols3, staplecol=cols3, boxcol=cols3, outcol=cols3,outbg=cols3 )
+#dev.off()
 
 # Response - Enzyme
-boxplot(Response~Enzyme, data=data, xlab="Enzyme type", ylab="Protein removal (RU)", 
+#png(filename="bp_response_enzyme.png", width=1750, height=1750, res=300)
+boxplot(Response~Enzyme, data=df, xlab="Enzyme type", ylab="Protein removal (RU)", 
         col=col_bg2, medcol=cols2, whiskcol=cols2, staplecol=cols2, boxcol=cols2, outcol=cols2, outbg=cols2)
+#dev.off()
+
 # Response - concentration
-boxplot(Response~EnzymeConc, data=data, xlab="Enzyme Concentration (nM)", ylab="Protein removal (RU)", 
-        col=col_bg, medcol=cols, whiskcol=cols, staplecol=cols, boxcol=cols, outcol=cols,outbg=cols )
+#png(filename="bp_response_conc.png",width=1750, height=1750, res=300)
+a <- boxplot(Response~EnzymeConc, data=data, xlab="Enzyme Concentration log(nM)", ylab="Protein removal (RU)", 
+             col=col_bg, medcol=cols, whiskcol=cols, staplecol=cols, boxcol=cols, outcol=cols,outbg=cols,
+             names=c(0,2.5, 7.5,15))
+axis(side= 1, at=seq_along(a$names), tick = FALSE, labels = a$names)
+#dev.off()
 
 # Response - Enzyme - Concentration
+#png(filename="bp_response_enzyme_conc.png", width=1750, height=1750, res=300)
 par(mfrow = c(1,1))
 b <- boxplot(Response ~  EnzymeConc + Enzyme, data = data, xaxt = "n", xlab="Enzyme type",
              col= col_bg, medcol=cols, whiskcol=cols, staplecol=cols, boxcol=cols, outcol=cols,outbg=cols, 
              names =c("","","A","","","","B","","","","C","","","","D","","","","E",""))
 axis(side= 1, at=seq_along(b$names), tick = FALSE, labels = b$names)
 legend("topright",title="Enzyme concentration", legend = c(0, 2.5, 7.5, 15), fill =cols, horiz =TRUE, cex=0.8)
+#dev.off()
 
 y <- sort(unique(data$EnzymeConc))
 
-#png(filename="Response per concentration.png", width=750, height=750)
+#png(filename="responseXconcentration.png", width=1750, height=1750, res=300)
 par(mfrow=c(2,2))
 for (i in y){
   plot(data$Response[data$EnzymeConc==i], pch=as.numeric(data$DetStock[data$EnzymeConc==i])+14, col=as.numeric(data$Enzyme[data$EnzymeConc==i]), ylab="Response", xlab="Observations", main=paste("Enzyme concentration: ",i))
@@ -88,7 +115,6 @@ for (i in y){
 
 par(mfrow=c(1,1))
 plot(data$Response~as.numeric(data$Enzyme), pch=as.numeric(as.factor(data$EnzymeConc))+14, col=as.numeric(data$DetStock))
-plot(data$Response~as.numeric(data$DetStock), pch=as.numeric(as.factor(data$EnzymeConc))+14, col=as.numeric(data$Enzyme))
 plot(data$Response~data$EnzymeConc, pch=19, col=as.numeric(data$Enzyme))
 
 # Model selection (1) ------------------------------------------------------
@@ -405,6 +431,11 @@ qqPlot(lm3i$residuals)
 shapiro.test(lm3i$residuals)
 # Residuals are normally distributed since p-value > 0.05
 
+#png(filename="LinearModel_Transformed.png",width=1750, height=1750, res=300)
+par(mfrow=c(2,2))
+plot(lm3i, col=as.numeric(as.factor(data$EnzymeConc))+1, pch=19)
+#dev.off()
+
 
 # Confidence Interval -----------------------------------------------------
 
@@ -418,3 +449,33 @@ data <- data[,-c(2,4,5,7)]
 pairs(data)
 
 lm4a <- lm(data$Response~data$RunDate*data$DetStock)
+Anova(lm4a)
+
+drop1(lm4a, test="F")
+
+lm4a <- update(lm4a, ~.-data$RunDate:data$DetStock)
+Anova(lm4a)
+
+par(mfrow=c(2,2))
+plot(lm4a, pch=19)
+
+par(mfrow=c(1,1))
+bc4 <-boxCox(lm4a, lambda = seq(0, 1, by = 0.05))
+lam <- bc$x[which.max(bc$y)]
+
+# Transforming the response
+#data$Response <- ((data$Response^lam)-1)/lam
+data$Response <- data$Response^lam
+
+lm4a <- lm(data$Response~data$RunDate*data$DetStock)
+Anova(lm4a)
+
+drop1(lm4a, test="F")
+
+lm4a <- update(lm4a, ~.-data$RunDate:data$DetStock)
+Anova(lm4a)
+
+par(mfrow=c(2,2))
+plot(lm4a, pch=19)
+
+kruskal.test(data$Response ~ data$RunDate+data$RunDate)
