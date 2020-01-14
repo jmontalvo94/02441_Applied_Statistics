@@ -438,38 +438,48 @@ plot(lm3i, col=as.numeric(as.factor(data$EnzymeConc))+1, pch=19)
 
 ##################
 #this is the model
-lm3i <- lm(data$Response~(data$DetStock+data$Enzyme)*data$EnzymeConc-data$DetStock:data$EnzymeConc)
+lm3i <- lm(Response~(DetStock+Enzyme)*EnzymeConc-DetStock:EnzymeConc, data = data)
 #new_data <- seq(min(data$EnzymeConc), max(data$EnzymeConc), length.out = 100)
 new_data <- seq(0, 15, length.out = 100)
 new_data_grid <- expand.grid(EnzymeConc = new_data, Enzyme = levels(data$Enzyme), DetStock = levels(data$DetStock))
 color_codes <- as.character(levels(data$Enzyme))
 
+
 #predictor plots
 #Det0
 par(mfrow=c(1,1))
 det0 <- data[data$DetStock == 'Det0',]
-plot(Response~EnzymeConc, det0, col= det0$Enzyme, pch=19) # cambiad variable enzyme conc a la raw!!!
-legend("topleft", legend = levels(det0$Enzyme), col = 1:nlevels(det0$Enzyme),
-       pch = 19, cex = 0.8)
+plot(Response~EnzymeConc, det0, col= det0$Enzyme, pch=19, main="Det0", xlab="sqrt Enzyme Concentration", ylab="Response (BoxCox transformed)")
 
 for (Enzyme in c(1,2,3,4,5)) {
-  x0 <- new_data_grid$EnzymeConc[new_data_grid$Enzyme==color_codes[Enzyme]&new_data_grid$DetStock=="Det0"]
+  x0 <- new_data_grid[new_data_grid$Enzyme==color_codes[Enzyme]&new_data_grid$DetStock=="Det0",]
   
   pred0 <- predict(lm3i,
-                   new_data_grid[new_data_grid$Enzyme==color_codes[Enzyme]&new_data_grid$DetStock=="Det0", ],
+                   newdata = x0,
                    interval = "prediction")
-  # la prediction no la hace bien por algo del linear model
-  # resultado: para predecir 100 valores, dice que el modelo tiene 158 rows!(?)
-  
-  matlines (x0, pred0, lty = c(1,2,2), lw = 1, col = 1)
+  matlines (x0$EnzymeConc, pred0, lty = c(1,2,2), lw = 1, col = Enzyme)
 }
-legend("bottomright", legend=levels(data$Enzyme), col=1:nlevels(data$Enzyme), 
+legend("topleft", legend=levels(data$Enzyme), col=1:nlevels(data$Enzyme), 
        title="Enzyme", pch = 19, cex = 0.8)
 
 
-#predic.x <- expand.grid(levels(factor1), levels(factor2), x.range)
-#individual conbinations between factor1 and 2. check forbes example
-#enzymeconc is x
+#predictor plots
+#Det+
+par(mfrow=c(1,1))
+detplus <- data[data$DetStock == 'Det+',]
+plot(Response~EnzymeConc, detplus, col= detplus$Enzyme, pch=19, main="Det+", xlab="sqrt Enzyme Concentration", ylab="Response (BoxCox transformed)")
+
+for (Enzyme in c(1,2,3,4,5)) {
+  x0 <- new_data_grid[new_data_grid$Enzyme==color_codes[Enzyme]&new_data_grid$DetStock=="Det+",]
+  
+  pred0 <- predict(lm3i,
+                   newdata = x0,
+                   interval = "prediction")
+  matlines (x0$EnzymeConc, pred0, lty = c(1,2,2), lw = 1, col = Enzyme)
+}
+legend("topleft", legend=levels(data$Enzyme), col=1:nlevels(data$Enzyme), 
+       title="Enzyme", pch = 19, cex = 0.8)
+
 
 # Confidence Interval -----------------------------------------------------
 
