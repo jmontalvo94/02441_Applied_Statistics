@@ -439,10 +439,11 @@ plot(lm3i, col=as.numeric(as.factor(data$EnzymeConc))+1, pch=19)
 ##################
 #this is the model
 lm3i <- lm(Response~(DetStock+Enzyme)*EnzymeConc-DetStock:EnzymeConc, data = data)
+Anova(lm3i)
 #new_data <- seq(min(data$EnzymeConc), max(data$EnzymeConc), length.out = 100)
-new_data <- seq(0, 15, length.out = 100)
+new_data <- sqrt(seq(0, 15, length.out = 100))
 new_data_grid <- expand.grid(EnzymeConc = new_data, Enzyme = levels(data$Enzyme), DetStock = levels(data$DetStock))
-color_codes <- as.character(levels(data$Enzyme))
+#color_codes <- as.character(levels(data$Enzyme))
 
 
 #predictor plots
@@ -457,7 +458,7 @@ for (Enzyme in c(1,2,3,4,5)) {
   pred0 <- predict(lm3i,
                    newdata = x0,
                    interval = "prediction")
-  matlines (x0$EnzymeConc, pred0, lty = c(1,2,2), lw = 1, col = Enzyme)
+  matlines (x0$EnzymeConc, pred0^(1/lm), lty = c(1,2,2), lw = 1, col = Enzyme)
 }
 legend("topleft", legend=levels(data$Enzyme), col=1:nlevels(data$Enzyme), 
        title="Enzyme", pch = 19, cex = 0.8)
@@ -469,13 +470,13 @@ par(mfrow=c(1,1))
 detplus <- data[data$DetStock == 'Det+',]
 plot(Response~EnzymeConc, detplus, col= detplus$Enzyme, pch=19, main="Det+", xlab="sqrt Enzyme Concentration", ylab="Response (BoxCox transformed)")
 
-for (Enzyme in c(1,2,3,4,5)) {
-  x0 <- new_data_grid[new_data_grid$Enzyme==color_codes[Enzyme]&new_data_grid$DetStock=="Det+",]
+for (Enzyme in c(3)) {
+  x0 <- new_data_grid[new_data_grid$Enzyme==levels(new_data_grid$Enzyme)[Enzyme]&new_data_grid$DetStock=="Det+",]
   
   pred0 <- predict(lm3i,
                    newdata = x0,
                    interval = "prediction")
-  matlines (x0$EnzymeConc, pred0, lty = c(1,2,2), lw = 1, col = Enzyme)
+  matlines (x0$EnzymeConc, pred0^(1/lam), lty = c(1,2,2), lw = 1, col = Enzyme)
 }
 legend("topleft", legend=levels(data$Enzyme), col=1:nlevels(data$Enzyme), 
        title="Enzyme", pch = 19, cex = 0.8)
