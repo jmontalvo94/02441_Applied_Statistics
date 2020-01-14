@@ -199,11 +199,11 @@ plot(lm1l$residuals~data$EnzymeConc, col=as.numeric(data$DetStock)+1, pch=19)
 
 par(mfrow=c(1,1))
 bc <-boxCox(lm1l, lambda = seq(0, 1, by = 0.05))
-lam <- bc$x[which.max(bc$y)]
+lam1 <- bc$x[which.max(bc$y)]
 
 # Transforming the response
 #data$Response <- ((data$Response^lam)-1)/lam
-data$Response <- data$Response^lam
+data$Response <- data$Response^lam1
 
 
 # Model selection (2) ------------------------------------------------------
@@ -448,35 +448,36 @@ new_data_grid <- expand.grid(EnzymeConc = new_data, Enzyme = levels(data$Enzyme)
 
 #predictor plots
 #Det0
-par(mfrow=c(1,1))
-det0 <- data[data$DetStock == 'Det0',]
-plot(Response~EnzymeConc, det0, col= det0$Enzyme, pch=19, main="Det0", xlab="sqrt Enzyme Concentration", ylab="Response (BoxCox transformed)")
-
-for (Enzyme in c(1,2,3,4,5)) {
-  x0 <- new_data_grid[new_data_grid$Enzyme==color_codes[Enzyme]&new_data_grid$DetStock=="Det0",]
-  
-  pred0 <- predict(lm3i,
-                   newdata = x0,
-                   interval = "prediction")
-  matlines (x0$EnzymeConc, pred0^(1/lm), lty = c(1,2,2), lw = 1, col = Enzyme)
-}
-legend("topleft", legend=levels(data$Enzyme), col=1:nlevels(data$Enzyme), 
-       title="Enzyme", pch = 19, cex = 0.8)
-
+ par(mfrow=c(1,1))
+ det0 <- data[data$DetStock == 'Det0',]
+ new <- (det0$EnzymeConc)^2
+ plot((det0$Response^(1/lam1))~new, col= det0$Enzyme, pch=19, main="Det0", xlab="sqrt Enzyme Concentration", ylab="Response (BoxCox transformed)")
+ 
+ for (Enzyme in c(1,2,3,4,5)) {
+   x0 <- new_data_grid[new_data_grid$Enzyme==levels(new_data_grid$Enzyme)[Enzyme]&new_data_grid$DetStock=="Det0",]
+   
+   pred0 <- predict(lm3i,
+                    newdata = x0,
+                    interval = "prediction")
+   matlines (x0$EnzymeConc^2, pred0^(1/lam1), lty = c(1,2,2), lw = 1, col = Enzyme)
+ }
+ legend("topleft", legend=levels(data$Enzyme), col=1:nlevels(data$Enzyme), 
+        title="Enzyme", pch = 19, cex = 0.8)
 
 #predictor plots
 #Det+
 par(mfrow=c(1,1))
 detplus <- data[data$DetStock == 'Det+',]
-plot(Response~EnzymeConc, detplus, col= detplus$Enzyme, pch=19, main="Det+", xlab="sqrt Enzyme Concentration", ylab="Response (BoxCox transformed)")
+new <- (detplus$EnzymeConc)^2
+plot((detplus$Response^(1/lam1))~new, col= detplus$Enzyme, pch=19, main="Det+", xlab="sqrt Enzyme Concentration", ylab="Response (BoxCox transformed)")
 
-for (Enzyme in c(3)) {
+for (Enzyme in c(1,2,3,4,5)) {
   x0 <- new_data_grid[new_data_grid$Enzyme==levels(new_data_grid$Enzyme)[Enzyme]&new_data_grid$DetStock=="Det+",]
   
   pred0 <- predict(lm3i,
                    newdata = x0,
                    interval = "prediction")
-  matlines (x0$EnzymeConc, pred0^(1/lam), lty = c(1,2,2), lw = 1, col = Enzyme)
+  matlines (x0$EnzymeConc^2, pred0^(1/lam1), lty = c(1,2,2), lw = 1, col = Enzyme)
 }
 legend("topleft", legend=levels(data$Enzyme), col=1:nlevels(data$Enzyme), 
        title="Enzyme", pch = 19, cex = 0.8)
