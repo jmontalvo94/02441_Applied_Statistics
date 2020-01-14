@@ -49,7 +49,7 @@ data <- data[,-1]
 
 # Data Visualization ------------------------------------------------------
 
-# setwd("~/Github/02441_Applied_Statistics/Case1/4_Images")
+#setwd("~/Github/02441_Applied_Statistics/Case1/4_Images")
 
 #Set up colors
 cols <- c("black","red", "blue", "green")
@@ -60,62 +60,66 @@ cols3 <- c("black","red")
 col_bg3 <- adjustcolor(cols3, alpha = 0.2) 
 
 # Pairs plot
-#png(filename="pairs_1.png", width=1750, height=1750, res=300)
-pairs(data, col=round(as.numeric(data$EnzymeConc))+2, pch=as.numeric(data$DetStock)+16)
-#dev.off
+png(filename="pairs.png", width=1750, height=1750, res=300)
+pairs(data, col=round(as.numeric(data$EnzymeConc))+3, pch=as.numeric(data$DetStock)+17)
+dev.off()
 
-#png(filename="bp_response_stock_1.png", width=1750, height=1750, res=300)
+# Response  - Stock
+png(filename="bp_response_stock_1.png", width=1750, height=1750, res=300)
 par(mfrow=c(1,2))
 plot(data$Response~data$DetStock, ylab="Response", xlab="Detergent",
      col=col_bg3, medcol=cols3, whiskcol=cols3, staplecol=cols3, boxcol=cols3, outcol=cols3,outbg=cols3)
 plot(data$Response~data$CaStock, ylab="Response", xlab="Hardness",
      col=col_bg3, medcol=cols3, whiskcol=cols3, staplecol=cols3, boxcol=cols3, outcol=cols3,outbg=cols3)
-#dev.off()
-
-# Response  - Stock
-#png(filename="bp_response_stock_2.png", width=1750, height=1750, res=300)
-par(mfrow=c(1,1))
-boxplot(Response~Stock , data=df, xlab="Conditions (Detergent and Ca2++ combinations)", ylab="Protein removal (RU)", 
-        col=col_bg3, medcol=cols3, whiskcol=cols3, staplecol=cols3, boxcol=cols3, outcol=cols3,outbg=cols3 )
-#dev.off()
+dev.off()
 
 # Response - Enzyme
-#png(filename="bp_response_enzyme.png", width=1750, height=1750, res=300)
+png(filename="bp_response_enzyme.png", width=1750, height=1750, res=300)
 boxplot(Response~Enzyme, data=df, xlab="Enzyme type", ylab="Protein removal (RU)", 
         col=col_bg2, medcol=cols2, whiskcol=cols2, staplecol=cols2, boxcol=cols2, outcol=cols2, outbg=cols2)
-#dev.off()
+dev.off()
 
 # Response - concentration
-#png(filename="bp_response_conc.png",width=1750, height=1750, res=300)
+png(filename="bp_response_conc.png",width=1750, height=1750, res=300)
 a <- boxplot(Response~EnzymeConc, data=data, xlab="Enzyme Concentration log(nM)", ylab="Protein removal (RU)", 
              col=col_bg, medcol=cols, whiskcol=cols, staplecol=cols, boxcol=cols, outcol=cols,outbg=cols,
              names=c(0,2.5, 7.5,15))
 axis(side= 1, at=seq_along(a$names), tick = FALSE, labels = a$names)
-#dev.off()
+dev.off()
 
 # Response - Enzyme - Concentration
-#png(filename="bp_response_enzyme_conc.png", width=1750, height=1750, res=300)
+png(filename="bp_response_enzyme_conc.png", width=1750, height=1750, res=300)
 par(mfrow = c(1,1))
 b <- boxplot(Response ~  EnzymeConc + Enzyme, data = data, xaxt = "n", xlab="Enzyme type",
              col= col_bg, medcol=cols, whiskcol=cols, staplecol=cols, boxcol=cols, outcol=cols,outbg=cols, 
              names =c("","","A","","","","B","","","","C","","","","D","","","","E",""))
 axis(side= 1, at=seq_along(b$names), tick = FALSE, labels = b$names)
 legend("topright",title="Enzyme concentration", legend = c(0, 2.5, 7.5, 15), fill =cols, horiz =TRUE, cex=0.8)
-#dev.off()
+dev.off()
 
+# Dot plot Detergent
 y <- sort(unique(data$EnzymeConc))
-
-#png(filename="responseXconcentration.png", width=1750, height=1750, res=300)
-par(mfrow=c(2,2))
+png(filename="responseXconcentration2.png", width=2000, height=1750, res=300)
+par(mfrow=c(2,2), oma =c(1,1,1,7), mar = c(3,2,2,2))
 for (i in y){
-  plot(data$Response[data$EnzymeConc==i], pch=as.numeric(data$DetStock[data$EnzymeConc==i])+14, col=as.numeric(data$Enzyme[data$EnzymeConc==i]), ylab="Response", xlab="Observations", main=paste("Enzyme concentration: ",i))
-  #legend("topleft", legend = as.character(data$Enzyme), cex=0.8)
-  }
-#dev.off()
+  plot(data$Response[data$EnzymeConc==i], pch=as.numeric(data$DetStock[data$EnzymeConc==i])+16, col=as.numeric(data$Enzyme[data$EnzymeConc==i]), ylab="Response", xlab="Observations", main=paste("Enzyme concentration: ",i,"nM"))
+}
+par(xpd=NA)
+legend(x=50, y=1150,legend = c("Enzyme A","Enzyme B","Enzyme C", "Enzyme D", "Enzyme E", "Det+", "Det0"),
+       col=c("red","#008000","blue","black",5,1,1), pch=c(19,19,19,19,19,2,5))
+dev.off()
 
-par(mfrow=c(1,1))
-plot(data$Response~as.numeric(data$Enzyme), pch=as.numeric(as.factor(data$EnzymeConc))+14, col=as.numeric(data$DetStock))
-plot(data$Response~data$EnzymeConc, pch=19, col=as.numeric(data$Enzyme))
+# Dot plot Calcium
+y <- sort(unique(data$EnzymeConc))
+png(filename="responseXconcentration1.png", width=2000, height=1750, res=300)
+par(mfrow=c(2,2), oma =c(1,1,1,7), mar = c(3,2,2,2))
+for (i in y){
+  plot(data$Response[data$EnzymeConc==i], pch=as.numeric(data$CaStock[data$EnzymeConc==i])+16, col=as.numeric(data$Enzyme[data$EnzymeConc==i]), ylab="Response", xlab="Observations", main=paste("Enzyme concentration: ",i,"nM"))
+}
+par(xpd=NA)
+legend(x=50, y=1150,legend = c("Enzyme A","Enzyme B","Enzyme C", "Enzyme D", "Enzyme E", "Ca+", "Ca0"),
+       col=c("red","#008000","blue","black",5,1,1), pch=c(19,19,19,19,19,2,5))
+dev.off()
 
 # BoxCox of maximal model -------------------------------------------------
 
@@ -134,7 +138,7 @@ plot(lm1, col=as.numeric(data$EnzymeConc)+1, pch=19)
 par(mfrow=c(1,1))
 plot(lm1$residuals~data$EnzymeConc, col=as.numeric(data$DetStock)+1, pch=19)
 
-# BoxCos Transformation
+# BoxCox Transformation
 par(mfrow=c(1,1))
 bc <- boxCox(lm1, lambda = seq(0, 1, by = 0.05))
 lam1 <- bc$x[which.max(bc$y)]
@@ -250,17 +254,12 @@ par(mfrow=c(2,2))
 plot(lm3l, col=as.numeric(data$Enzyme)+1, pch=19)
 #dev.off()
 
-# Residuals
-par(mfrow=c(1,1))
-plot(lm3l$residuals~data$EnzymeConc, col=as.numeric(data$DetStock), pch=19)
 
 # Testing BoxCox
 par(mfrow=c(1,1))
 bc3 <-boxCox(lm3l, lambda = seq(0, 2, by = 0.05))
 lam <- bc3$x[which.max(bc3$y)]
 
-par(mfrow=c(1,1))
-qqPlot(lm3l)
 
 # Should we remove the outliers?
 data <- data[-c(147,160),]
@@ -277,6 +276,9 @@ shapiro.test(lm3l$residuals)
 par(mfrow=c(2,2))
 plot(lm3l, col=as.numeric(as.factor(data$EnzymeConc))+1, pch=19)
 #dev.off()
+
+par(mfrow=c(1,1))
+qqPlot(lm3l)
 
 
 # Confidence Interval -----------------------------------------------------
