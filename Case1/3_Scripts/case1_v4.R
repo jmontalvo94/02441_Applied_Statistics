@@ -22,7 +22,7 @@ df$Stock <- as.factor(paste(as.character(df$DetStock),as.character(df$CaStock)))
 
 # Testing
 # Set a new wd to save the images
-# setwd("~/Github/02441_Applied_Statistics/Case1/4_Images")
+setwd("~/Github/02441_Applied_Statistics/Case1/4_Images")
 
 png(filename="test1_1.png", width=1750, height=1550, res=300)
 par(mfrow=c(1,1))
@@ -75,13 +75,13 @@ dev.off()
 
 # Response - Enzyme
 png(filename="bp_response_enzyme.png", width=1750, height=1750, res=300)
-boxplot(Response~Enzyme, data=df, xlab="Enzyme type", ylab="Protein removal (RU)", 
+boxplot(Response~Enzyme, data=df, xlab="Enzyme type", ylab="Response", 
         col=col_bg2, medcol=cols2, whiskcol=cols2, staplecol=cols2, boxcol=cols2, outcol=cols2, outbg=cols2)
 dev.off()
 
 # Response - EnzymeConcentration
 png(filename="bp_response_conc.png",width=1750, height=1750, res=300)
-a <- boxplot(Response~EnzymeConc, data=data, xlab="Enzyme Concentration log(nM)", ylab="Protein removal (RU)", 
+a <- boxplot(Response~EnzymeConc, data=data, xlab="Enzyme Concentration log(nM)", ylab="Response", 
              col=col_bg, medcol=cols, whiskcol=cols, staplecol=cols, boxcol=cols, outcol=cols,outbg=cols,
              names=c(0,2.5, 7.5,15))
 axis(side= 1, at=seq_along(a$names), tick = FALSE, labels = a$names)
@@ -400,7 +400,14 @@ drop1(lm4b, test="F")
 
 lm4b <- update(lm4b, ~.-data$DetStock:data$RunDate)
 Anova(lm4b)
+summary(lm4b)
 
+
+lm4ba <- Anova(lm4b)
+#lm3lsum <- summary(lm3l)
+
+print(xtable(lm4ba, type = "latex"), file = "lm4b_ancova.tex")
+#print(xtable(lm3lsum, type = "latex"), file = "lm3l_summary.tex")
 png(filename="lm4b.png", width=1750, height=1750, res=300)
 par(mfrow=c(2,2))
 plot(lm4b, pch=19, col=as.numeric(data$RunDate))
