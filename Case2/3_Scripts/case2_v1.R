@@ -82,10 +82,3 @@ df <- read_csv("~/Github/02441_Applied_Statistics/Case2/2_Data/merged_data.csv")
 
 str(df)
 summary(df)
-
-# Factorize fog, rain, snow, cond, and dir
-data$fog <- factor(data$fog)
-data$rain <- factor(data$rain)
-data$snow <- factor(data$snow)
-data$cond <- factor(data$cond)
-data$dir <- factor(data$dir)
