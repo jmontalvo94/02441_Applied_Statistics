@@ -3,7 +3,7 @@
 ## HTK Case: Energy performance of buildings                           ##
 #########################################################################
 
-# Authors: BegoÃ±a Bolos Sierra, Laura Sans Comerma, Jorge Montalvo Arvizu
+# Authors: Begoña Bolos Sierra, Laura Sans Comerma, Jorge Montalvo Arvizu
 
 
 # Load Data ---------------------------------------------------------------
@@ -20,6 +20,7 @@ library(stringr)
 htk <- read_excel("~/Github/02441_Applied_Statistics/Case2/2_Data/HTK_building_data_share.xlsx")
 load("~/Github/02441_Applied_Statistics/Case2/2_Data/WUndergroundHourly.RData")
 files <- dir("~/Github/02441_Applied_Statistics/Case2/2_Data/meterdata", pattern="*.txt", full.names=TRUE)
+
 
 # WUnderground ----------------------------------------------------------------
 
@@ -60,7 +61,7 @@ str(data)
 # Calculate mean value for continuous and mode for factor variables
 mean <- data.frame()
 mode <- data.frame()
-  for (i in 2:nrow(data)){
+for (i in 2:nrow(data)){
   if (is.numeric(i) == FALSE){
     mode[,i] <- aggregate(data$i, list(Date=data$day), mode)
   }
