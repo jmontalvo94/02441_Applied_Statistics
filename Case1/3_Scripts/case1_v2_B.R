@@ -18,7 +18,7 @@ df <- data
 df$Stock <- as.factor(paste(as.character(df$DetStock),as.character(df$CaStock)))
 
 
-# Tests ---------------------------------------------------------
+# Data transformation ---------------------------------------------------------
 
 # Testing
 #png(filename="test1_1.png", width=1750, height=1550, res=300)
