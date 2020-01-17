@@ -3,22 +3,26 @@
 ## HTK Case: Energy performance of buildings                           ##
 #########################################################################
 
-# Authors: Begona Bolos Sierra, Laura Sans Comerma, Jorge Montalvo Arvizu
+# Authors: Bego?a Bolos Sierra, Laura Sans Comerma, Jorge Montalvo Arvizu
 
 
 # Load Data ---------------------------------------------------------------
+
 require("car")
-require("dplyr")
-require("xtable")
+require("tidyverse")
 library("stringr")
-library("ggpubr")
+
+# Visualization packages
+require("xtable")
+require("ggpubr")
 require("ggplot2")
-library("ggExtra")
+require("ggExtra")
 require("GGally")
 require('ggcorrplot')
 
 
 # Load data ----------------------------------------------------------
+
 htk <- read_excel("~/Github/02441_Applied_Statistics/Case2/2_Data/HTK_building_data_share.xlsx")
 load("~/Github/02441_Applied_Statistics/Case2/2_Data/WUndergroundHourly.RData")
 files <- dir("~/Github/02441_Applied_Statistics/Case2/2_Data/meterdata", pattern="*.txt", full.names=TRUE)
@@ -35,30 +39,30 @@ data_0 <- Filter(function(x)!all(is.na(x)), WG)
 setdiff(names(WG),names(data_0))
 
 # Remove columns with fixed values
-data_1 <- Filter(function(x) length(unique(x))!=1, data_0)
+data <- Filter(function(x) length(unique(x))!=1, data_0)
 
 # Check removed columns
 setdiff(names(data_0),names(data))
 
 # Change full date to short date
-day <- data.frame(str_split_fixed(data_1$date, " ", 2))
+day <- data.frame(str_split_fixed(data$date, " ", 2))
 day <- day[,-2]
-data_1 <- cbind(day, data_1)
-data_1 <- data_1[,-2]
+data<- cbind(day, data)
+data <- data[,-2]
 
 # Check summary and structure of data
-summary(data_1)
-str(data_1)
+summary(data)
+str(data)
 
 # Factorize fog, rain, snow, cond, and dir
-#data_1$fog <- factor(data_1$fog)
-#data_1$rain <- factor(data_1$rain)
-#data_1$snow <- factor(data_1$snow)
-data_1$cond <- factor(data_1$cond)
-data_1$dir <- factor(data_1$dir)
+# data$fog <- factor(data$fog)
+# data$rain <- factor(data$rain)
+# data$snow <- factor(data$snow)
+data$cond <- factor(data$cond)
+data$dir <- factor(data$dir)
 
 # Sanity-check
-str(data_1)
+str(data)
 
 # Calculate mean value for continuous and mode for factor variables
 # Create a mode function
@@ -68,43 +72,46 @@ getmode <- function(v) {
 }
 
 # Create a data frame for the means and the modes
-data_2 <- cbind.data.frame(day)
+mean_mode <- cbind.data.frame(day)
 # it has only unique values, remove repeated dates
-data_2 <- unique(data_2)
+mean_mode <- unique(mean_mode)
 
 # get the column names
-names <- colnames(data_1)
+names <- colnames(data)
 
 # Calculate the mean and mode for each colum of the df
-for (i in 2:ncol(data_1)){
-  if (is.numeric(data_1[,i]) == FALSE){
-    values <- cbind.data.frame(data_1$day, data_1[,i])
+for (i in 2:ncol(data)){
+  if (is.numeric(data[,i]) == FALSE){
+    values <- cbind.data.frame(data$day, data[,i])
     colnames(values) <- c("date","value")
     mode_value<- aggregate(values$value,list(values$date), getmode)
-    data_2 <- cbind.data.frame(data_2, mode_value)
+    mean_mode <- cbind.data.frame(mean_mode, mode_value)
   }
-  if (is.numeric(data_1[,i]) == TRUE){
-    values <- cbind.data.frame(data_1$day, data_1[,i])
+  if (is.numeric(data[,i]) == TRUE){
+    values <- cbind.data.frame(data$day, data[,i])
     colnames(values) <- c("date","value")
     mean_value <- aggregate(values$value,list(values$date), mean)
-    data_2 <- cbind.data.frame(data_2, mean_value)
+    mean_mode <- cbind.data.frame(mean_mode, mean_value)
   } 
 }
 
 # Erase duplicate dates
-data_2 <- data_2[!duplicated(as.list(data_2))]
+mean_mode <- mean_mode[!duplicated(as.list(mean_mode))]
 # Erase an extra column 
-data_2 <- data_2[,-1]
+mean_mode <- mean_mode[,-1]
 # change column names
-colnames(data_2) <- names
+colnames(mean_mode) <- names
+
+
 
 # Meter -------------------------------------------------------------------
 
 
 
-# Analysis ----------------------------------------------------------------
+# Load Data ---------------------------------------------------------------
+
 # Load CampusNet Merged Data
-df <- read.csv("~/Github/02441_Applied_Statistics/Case2/2_Data/merged_data.csv", header=TRUE, sep=",")
+df <- read_csv("~/Github/02441_Applied_Statistics/Case2/2_Data/merged_data.csv", header=TRUE, sep=",")
 
 # Set new directory for output files
 setwd("~/Github/02441_Applied_Statistics/Case2/4_Images")
@@ -115,8 +122,18 @@ summary(df)
 sum_df <- summary(df)
 print(xtable(sum_df, type = "latex"), file = "summary_df.tex")
 
-# Data Visualization ------------------------------------------------------
+# Factorize variables
+df$date <- factor(df$date)
+df$ID <- factor(df$ID)
+df$dir <- factor(df$dir)
+df$cond <- factor(df$cond)
 
+# Removing direction, visibility, condition, and fog
+plot(fog~cond, df)
+plot(rain~cond, df) #it doesn't seem that condition gives interpretable info
+df <- df[,-c(8,9,11,12)]
+
+# Data visualization ------------------------------------------------------
 # Pairs plot
 temp_interval <- cut(df$temp, 3) # divide temperature in intervals to colour
 df_2 <- df[,-c(1,5,8,9)] # erase attributes that are not important
@@ -143,18 +160,18 @@ str(p2)
 # Consumption - Temperature
 #scatter
 p3 <- ggscatter(df, x="temp",y="consumption",
-               col = "blue",
-               add = "reg.line", conf.int = TRUE,
-               add.params = list(color = "red", fill = "pink"),
-               size = 2, alpha = 0.4,
-               xlab ="Temperature (ºC)", ylab = "Consumption")
+                col = "blue",
+                add = "reg.line", conf.int = TRUE,
+                add.params = list(color = "red", fill = "pink"),
+                size = 2, alpha = 0.4,
+                xlab ="Temperature (ºC)", ylab = "Consumption")
 ggMarginal(p3, type = "boxplot")
 
 
 # scatter coloured by other
 p3_2 <- ggplot(df, aes(x = temp, y = consumption, colour=rain))
 p3_2 + geom_point() + geom_smooth(method = lm, se = FALSE) + theme_classic() + labs (x ="Temperature (ºC)", y = "Consumption")
- 
+
 # Consumption - humidity
 p4 <- ggscatter(df, y="consumption", x="hum",
                 col = "blue",
@@ -166,13 +183,50 @@ ggMarginal(p4, type = "boxplot")
 
 # Fog - humidity
 p5 <- ggscatter(df, y="fog", x="hum",
-               col = "blue",
-               add = "reg.line", conf.int = TRUE,
-               add.params = list(color = "red"),
-               size = 2, alpha = 0.4,
-               ylab ="Fog", xlab = "Humidity")
+                col = "blue",
+                add = "reg.line", conf.int = TRUE,
+                add.params = list(color = "red"),
+                size = 2, alpha = 0.4,
+                ylab ="Fog", xlab = "Humidity")
 ggMarginal(p5, type = "boxplot")
 
 
 
+# Analysis ----------------------------------------------------------------
+# Outlier investigation
+plot(df$temp, df$consumption, type="p", col=df$ID, pch=19)
+plot(consumption~temp, subset(df, ID==78185925), pch=19, col=2)
+df <- df[-c(3282,3357),] # Removing outliers 3282 and 3357
 
+# Calculating insulation
+lm_u <- lm(consumption~ID*I(21-temp),df)
+Anova(lm_u)
+summary(lm_u)
+df_u <- data.frame(data.frame(lm_u$coefficients)[c(84:166),],row.names=levels(df$ID))
+colnames(df_u) <- "u"
+df_u$u <- df_u$u+df_u$u[1]
+#df_u$ID <- levels(df$ID)
+
+# Check dew collinearity
+pairs(subset(df, select=c(4:6)))
+cor.test(df$temp, df$dew_pt)
+df <- df[,-5] # Correlation very high at 0.95, thus remove dew_pt
+
+# Data Visualization ------------------------------------------------------
+
+pairs(subset(df, select=c(3:8), col=df$ID))
+
+
+# Models ------------------------------------------------------------------
+
+# Test simple model
+lm_test <- lm(consumption~ID+date+I(21-temp), df)
+Anova(lm_test)
+summary(lm_test)
+par(mfrow=c(2,2))
+plot(lm_test)
+
+lm1 <- step(lm(consumption~.-date, df), scope=~.^2, k=log(nrow(df)), trace=FALSE)
+Anova(lm1)
+plot(lm1)
+summary(lm1)
