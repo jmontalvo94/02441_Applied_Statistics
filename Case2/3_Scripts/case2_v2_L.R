@@ -20,7 +20,7 @@ require("ggplot2")
 require("ggExtra")
 require("GGally")
 require('ggcorrplot')
-
+require("wesanderson")
 
 
 # Load data ----------------------------------------------------------
@@ -137,9 +137,18 @@ df <- df[,-c(8,9,11,12)]
 
 # Split building type 
 type <- data.frame(str_split_fixed(htk$Anvendelse, " ", 2))
+# dataframe with type code and name
+type_building <-type
+type_building <- unique(type_building)
+colnames(type_building) <- c("type", "name") # rename columns
+type_building <- type_building[order(type_building$type),]
+# data frame with only type code
 type <- type[,-2]
 id_type <- cbind.data.frame(htk$Målernr, type)  # merge ID and type 
 colnames(id_type) <- c("ID", "type") # rename columns
+
+# Table of building types for appendix
+print(xtable(type_building, type = "latex"), file = "type_building.tex")
 
 # Now add new type column to the df 
 new_df <- merge(df, id_type ,by="ID")
@@ -148,11 +157,40 @@ new_df <- merge(df, id_type ,by="ID")
 # Pairs plot
 pairs(subset(df, select=c(3:8), col=df$ID))
 
+#Building plot type 032 / ID 78185925
+# select type and make also building subset
+type032 <- subset(new_df, col=new_df$type, type =="032", select = ID:type)
+id78185925 <- subset(type032, col=type032$ID, ID =="78185925", select = ID:type)
+outliers <- df[c(3282,3357),]
 
+#png(filename="78185925.png", width=1750, height=1050, res=300)
+p1 <- ggplot() + geom_point(data=type032, aes(x=temp, y=consumption, col="ID 78185925",alpha=0.3)) + geom_point(data=id78185925, aes(x=temp, y=consumption, col="Other",alpha=0.3)) + geom_point(data=outliers, aes(x=temp, y=consumption, col="Outliers", alpha=0.3))
+p1 + scale_color_manual(guide = guide_legend(),values=c("#899DA4","#DC863B","#C93312"), name="Sports and swimming (type = 032)") +  xlab("Temperature ºC") + ylab("Consumption") + theme_classic() + theme(legend.position ="bottom",legend.box = 'horizontal', )
+#dev.off()
 
+# Plot consumption sum vs type of building
+# list of 25 colors for type 
+mix_cols = c("#D8B70A", "#02523B", "#A2A475", "#81A88D", "#000000","#899DA4", "#98E3DD", "#FAEFD1", "#DC863B","#F1BB7B", "#FD6467", "#5B1A18", "#D67236","#DD8D29", "#E2D200", "#46ACC8", "#E58601", "#B40F20","#A42820", "#5F5647", "#9B110E", "#3F5151", "#4E2A1E","#E6A0C4", "#0C1707")
 
+# aggregate consumption SUM
+consumption_sum <- aggregate(new_df$consumption,list(new_df$type), sum)
+colnames(consumption_sum) <- c("type", "cons") # rename columns
 
+#png(filename="78185925.png", width=1750, height=1050, res=300)
+p2 <- ggplot(data=consumption_sum, aes(x=type, y=cons, fill=type, alpha=0.3)) + geom_bar(stat="identity",show.legend = FALSE)
+p2 + scale_fill_manual(values=mix_cols) + xlab("Type of building") + ylab("Consumption") + theme_classic()
+#dev.off()
 
+# plot Consumption - date
+cons_date_sum <- aggregate(new_df$consumption,list(id11= new_df$type, id12= new_df$date), sum)
+colnames(cons_date_sum) <- c("type", "date", "cons") # rename columns
+cons_date_sum$date <- as.numeric(cons_date_sum$date)
+cons_date_sum$rank <- rank(cons_date_sum$date)
+
+#png(filename="78185925.png", width=1750, height=1050, res=300)
+p3 <- ggplot(data=cons_date_sum, aes(x=date, y=cons, col=type)) + geom_line()
+p3 + scale_color_manual(values=mix_cols) + xlab("Date") + ylab("Consumption") + theme_classic()
+#dev.off()
 
 # Pairs plot
 temp_interval <- cut(df$temp, 3) # divide temperature in intervals to colour
