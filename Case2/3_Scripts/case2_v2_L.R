@@ -11,6 +11,7 @@
 require("car")
 require("tidyverse")
 library("stringr")
+require("readxl")
 
 # Visualization packages
 require("xtable")
@@ -19,6 +20,7 @@ require("ggplot2")
 require("ggExtra")
 require("GGally")
 require('ggcorrplot')
+
 
 
 # Load data ----------------------------------------------------------
@@ -103,7 +105,6 @@ mean_mode <- mean_mode[,-1]
 colnames(mean_mode) <- names
 
 
-
 # Meter -------------------------------------------------------------------
 
 
@@ -111,7 +112,7 @@ colnames(mean_mode) <- names
 # Load Data ---------------------------------------------------------------
 
 # Load CampusNet Merged Data
-df <- read_csv("~/Github/02441_Applied_Statistics/Case2/2_Data/merged_data.csv", header=TRUE, sep=",")
+df <- read_csv("~/Github/02441_Applied_Statistics/Case2/2_Data/merged_data.csv")
 
 # Set new directory for output files
 setwd("~/Github/02441_Applied_Statistics/Case2/4_Images")
@@ -133,7 +134,26 @@ plot(fog~cond, df)
 plot(rain~cond, df) #it doesn't seem that condition gives interpretable info
 df <- df[,-c(8,9,11,12)]
 
+
+# Split building type 
+type <- data.frame(str_split_fixed(htk$Anvendelse, " ", 2))
+type <- type[,-2]
+id_type <- cbind.data.frame(htk$Målernr, type)  # merge ID and type 
+colnames(id_type) <- c("ID", "type") # rename columns
+
+# Now add new type column to the df 
+new_df <- merge(df, id_type ,by="ID")
+
 # Data visualization ------------------------------------------------------
+# Pairs plot
+pairs(subset(df, select=c(3:8), col=df$ID))
+
+
+
+
+
+
+
 # Pairs plot
 temp_interval <- cut(df$temp, 3) # divide temperature in intervals to colour
 df_2 <- df[,-c(1,5,8,9)] # erase attributes that are not important
@@ -211,10 +231,6 @@ df_u$u <- df_u$u+df_u$u[1]
 pairs(subset(df, select=c(4:6)))
 cor.test(df$temp, df$dew_pt)
 df <- df[,-5] # Correlation very high at 0.95, thus remove dew_pt
-
-# Data Visualization ------------------------------------------------------
-
-pairs(subset(df, select=c(3:8), col=df$ID))
 
 
 # Models ------------------------------------------------------------------
