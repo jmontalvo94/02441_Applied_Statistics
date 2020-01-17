@@ -10,7 +10,7 @@
 
 library(dplyr)
 files <- dir("~/Github/02441_Applied_Statistics/Case2/2_Data/meterdata", pattern = "*.txt", full.names=TRUE)
-df <- do.call(rbind, lapply(files, read.table, sep=";"))
+df <- do.call(rbind, lapply(files, read.table, sep=";", dec= ","))
 df <- df[,c(1,2,4)]
 names(df) <- c("ID", "Time", "Reading") 
 df$Reading <- as.numeric(df$Reading)
@@ -43,7 +43,7 @@ for (j in 1:nrow(count_list)){
 #   }
 # }
 
-# library(stringr)
+library(stringr)
 # day <- data.frame(str_split_fixed(df$Time, " ", 2))
 # date <- day[,1]
 # time <- day[,2]
@@ -70,3 +70,35 @@ df$Time <- as.POSIXct(strptime(df$Time, format = "%d-%m-%Y %H.%M"))
 # x.inter <- c('23:00:00', '02:00:00')
 # inter.result <- approx(df$Time, df$Reading, xout = x.inter)
 # points(inter.result$Time, inter.result$Reading, pch=17)
+
+#df <- df[order(df$ID), ]
+#uniques <- unique(df$ID)
+split_data = split(df, df$ID)
+# x_inter <- list()
+# 
+# for (d in as.character(dates)) {
+#   dat <- as.POSIXct(paste(d, "23:59:00"), format="%Y-%m-%d %H:%M:%S")
+#   x_inter <- append(x_inter, dat)
+# }
+
+for (i in split_data){
+  x <- i
+  x <- x[order(x$Time),]
+  readings <- x[,c(3)]
+  ex <- x[,c(2)]
+  #b <- substr(x[,c(2)],1,19)
+  day <- data.frame(str_split_fixed(x$Time, " ", 2))
+  date <- day[,1]
+  hour <- day[,2]
+  plot(readings~ex, xlab="Date", ylab="Readings", col=("Red"))
+  x.inter <- list()
+  for (element in as.character(date)){
+    dat <- as.POSIXct(paste(element, "23:59:00"), format="%Y-%m-%d %H:%M:%S")
+    x.inter <- append(x.inter, dat)
+  }
+  inter.result <- approx(x = ex, y = readings, xout=x.inter)
+  points(inter.result$x, inter.result$y, pch = 2)
+  legend("topleft", legend = c("data", "interpolated"), pch = c(1,2), col=c("Red", "Black"))
+}
+
+
