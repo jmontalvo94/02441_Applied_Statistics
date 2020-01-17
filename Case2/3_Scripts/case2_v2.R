@@ -143,6 +143,14 @@ pairs(subset(df, select=c(3:8), col=df$ID))
 
 # Models ------------------------------------------------------------------
 
-# Test full model without interactions
-lm_test <- lm(consumption~date+I(21-temp)+ID, df)
+# Test simple model
+lm_test <- lm(consumption~ID+date+I(21-temp), df)
 Anova(lm_test)
+summary(lm_test)
+par(mfrow=c(2,2))
+plot(lm_test)
+
+lm1 <- step(lm(consumption~.-date, df), scope=~.^2, k=log(nrow(df)), trace=FALSE)
+Anova(lm1)
+plot(lm1)
+summary(lm1)
