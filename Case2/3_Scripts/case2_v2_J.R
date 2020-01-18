@@ -11,7 +11,6 @@
 require("car")
 require("ggplot2")
 require("xtable")
-require("tidyverse")
 library(stringr)
 require("readxl")
 
@@ -105,21 +104,22 @@ colnames(mean_mode) <- names
 
 # Analysis ----------------------------------------------------------------
 
-df <- read_csv("~/Github/02441_Applied_Statistics/Case2/2_Data/merged_data.csv")
+df <- read.csv("~/Github/02441_Applied_Statistics/Case2/2_Data/merged_data.csv")
 
 # Date to workweek and weekend, per month
+df$date <- as.Date(df$date)
 df$month <- months(df$date)
-df$week <- weekdays(df$date)
+df$day <- weekdays(df$date)
 workweek <- c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday")
 weekend <- c("Saturday", "Sunday")
 for (i in workweek) {
-  df$week[df$week == i] <- "Wrk"
+  df$day[df$day == i] <- "Wrk"
 }
 for (i in weekend) {
-  df$week[df$week == i] <- "Wknd"
+  df$day[df$day == i] <- "Wknd"
 }
 
-df$seasonality <- paste(df$month,df$week)
+df$seasonality <- paste(df$month,df$day)
 df <- df[,-c(14,15)]
 
 # Factorize variables
@@ -127,6 +127,7 @@ df$seasonality <- factor(df$seasonality)
 df$ID <- factor(df$ID)
 df$dir <- factor(df$dir)
 df$cond <- factor(df$cond)
+df$date <- factor(df$date)
 
 # Removing direction, visibility, condition, fog, and rain
 plot(fog~cond, df)
@@ -134,8 +135,8 @@ plot(rain~cond, df) # Condition doesn't seem to be easily interpretable
 df <- df[,-c(8,9,11,12,13)]
 
 # Outlier investigation
-plot(df$temp, df$consumption, type="p", col=df$ID, pch=19)
-plot(consumption~temp, subset(df, ID==78185925), pch=19, col=2)
+plot(21-df$temp, df$consumption, type="p", col=df$ID, pch=19)
+plot(consumption~I(21-temp), subset(df, ID==78185925), pch=19, col=2)
 df <- df[-c(3282,3357),] # Removing outliers 3282 and 3357
 
 # Calculating insulation
@@ -158,8 +159,13 @@ type <- type[,-2]
 df_type <- cbind.data.frame(htk$Målernr, type)  # merge ID and type 
 colnames(df_type) <- c("ID", "type") # rename columns
 
-# Now add new type column to the df 
-# df <- merge(df, df_type ,by="ID")
+df_missing <- data.frame(setdiff(unique(df$ID),unique(htk$Målernr)),rep("000",6))
+colnames(df_missing) <- c("ID", "type") # rename columns
+df_type <- rbind(df_type,df_missing)
+
+# Now add new type column to the df_u 
+df_u <- merge(df_u, df_type, by="ID")
+df <- merge(df, df_type, by="ID")
 
 # Data Visualization ------------------------------------------------------
 
