@@ -165,7 +165,7 @@ df_type <- rbind(df_type,df_missing)
 
 # Now add new type column to the df_u 
 df_u <- merge(df_u, df_type, by="ID")
-df <- merge(df, df_type, by="ID")
+testing <- merge(df, df_type, by="ID")
 
 # Data Visualization ------------------------------------------------------
 
