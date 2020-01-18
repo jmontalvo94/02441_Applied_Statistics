@@ -171,6 +171,30 @@ summary(df)
 sum_df <- summary(df[9:14])
 print(xtable(sum_df, type = "latex"), file = "summary_df.tex")
 
+# Date to workweek and weekend, per month
+df$date <- as.Date(df$date)
+df$month <- months(df$date)
+df$day <- weekdays(df$date)
+workweek <- c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday")
+weekend <- c("Saturday", "Sunday")
+for (i in workweek) {
+  df$day[df$day == i] <- "Wrk"
+}
+for (i in weekend) {
+  df$day[df$day == i] <- "Wknd"
+}
+
+df$seasonality <- paste(df$month,df$day)
+df <- df[,-c(14,15)]
+
+# Factorize variables
+df$seasonality <- factor(df$seasonality)
+df$ID <- factor(df$ID)
+df$dir <- factor(df$dir)
+df$cond <- factor(df$cond)
+df$date <- factor(df$date)
+
+
 # Factorize variables
 df$date <- factor(df$date)
 df$ID <- factor(df$ID)
@@ -185,7 +209,7 @@ df <- df[,-c(8,9,11,12)]
 # Split building type from HTK file 
 type <- data.frame(str_split_fixed(htk$Anvendelse, " ", 2))
 
-# dataframe with type code and name
+# Get a building type df only
 type_building <-type
 type_building <- unique(type_building)
 colnames(type_building) <- c("type", "name") # rename columns
@@ -198,6 +222,10 @@ type_building <- rbind(type_building,zero_type)
 type <- type[,-2]
 id_type <- cbind.data.frame(htk$Målernr, type)  # merge ID and type 
 colnames(id_type) <- c("ID", "type") # rename columns
+
+df_missing <- data.frame(setdiff(unique(df$ID),unique(htk$M?lernr)),rep("000",6))
+colnames(df_missing) <- c("ID", "type") # rename columns
+df_type <- rbind(df_type,df_missing)
 
 # Table of building types for appendix
 print(xtable(type_building, type = "latex"), file = "type_building.tex")
