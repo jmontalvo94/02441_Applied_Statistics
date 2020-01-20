@@ -480,7 +480,8 @@ plot(consumption~I(21-temp), type="p", df_oddvariance, col=ID, pch=19)
 df_oddvariance <- droplevels(df_oddvariance)
 oddvariance <- unique(df_oddvariance$ID)
 
-# Maybe add 529800 and 7072241 too
+
+
 
 
 # Create data frames to check
@@ -533,7 +534,7 @@ outliers <- c(1558,1552,1544,1611,1592,1568,1600,1629,1612,1603,3061,3045,3065,2
 
 df <- df[-outliers,]
   
-# Remove zeros (because of shutting down?)
+# Remove zeros (because of shutting down or starting consumption later)
 df <- subset(df, consumption!=0)
 
 # Remove odd buildings
@@ -542,20 +543,22 @@ df <- subset(df, ID!=69999051)
 df <- droplevels(df)
 
 # Remove september observations
-# df <- subset(df,date>)
+df$date <- as.Date(df$date)
+par(mfrow=c(1,1))
+plot(consumption~date,subset(df,date<"2018-10-01"), pch=19, col=ID)
+df <- subset(df,date>"2018-09-24")
+df$date <- factor(df$date)
 
 # Set final data frame
 df_model <- df[,-c(2,3,4,8,12,13)]
 df_model$temp <- 21-df$temp
-df_model <- droplevels(df_model)
 
 
 
 
-# Full model with interactions and without pressure
+# Full model with interactions
 lm3 <- step(lm(adjconsumption~., df_model), scope=~.^3, k=log(nrow(df_model)), trace=FALSE)
 anova3 <- Anova(lm3)
-alias(lm3)
 par(mfrow=c(2,2))
 plot(lm3, col=df$ID, pch=19)
 sum3 <- summary(lm3, correlation=TRUE)
@@ -582,20 +585,22 @@ df <- merge(df, df_mean, by = "ID")
 # Plot variance per building against mean consumption per building
 par(mfrow=c(1,1))
 plot(variance ~ mean, df, col=df$ID, pch=19)
-lines(seq(-1,4,length.out=100),rep(0.05,100), col=2) # we propose a threshold of 0.1 variance to identify odd buildings
+lines(seq(-1,4,length.out=100),rep(0.03,100), col=2) # we propose a threshold of 0.4 variance to identify odd buildings
+
 
 # Data frame of odd buildings (10) at variance greater than 0.1
-df_oddvariance <- data.frame(subset(df, variance>0.05))
+df_oddvariance <- data.frame(subset(df, variance>0.03))
 plot(consumption~I(21-temp), type="p", df_oddvariance, col=ID, pch=19)
 df_oddvariance <- droplevels(df_oddvariance)
 oddvariance <- unique(df_oddvariance$ID)
 
-# Maybe add 529800 and 7072241 too
+
+
 
 
 # Create data frames to check
-df_minus7 <- data.frame(subset(df, variance<0.05))
-df_minus7 <- droplevels(df_minus7)
+df_minus17 <- data.frame(subset(df, variance<0.03))
+df_minus17 <- droplevels(df_minus17)
 
 
 
@@ -608,21 +613,21 @@ legend("topleft", legend=levels(df_oddvariance$ID), pch=19, col=unique(df_oddvar
 # There are some weird buildings and outliers that we could check
 
 # Plot consumption against date of normal variance buildings
-plot(consumption~as.numeric(date), df_minus6, col=ID, pch=19)
+plot(consumption~as.numeric(date), df_minus19, col=ID, pch=19)
 
-# Plot each building with odd variance per day
-par(mfrow=c(2,4))
+# Plot each building with odd variance per day type
+par(mfrow=c(4,5))
 for (i in unique(df_oddvariance$ID)) {
   set1 <- subset(df,ID==i)
-  plot(consumption~as.numeric(date),set1, pch=19, col=ID, main=paste("ID: ",i), type="n", xlab="date")
-  #legend("topleft", legend=levels(df_oddvariance$day), pch=19, col=unique(df_oddvariance$day))
+  plot(consumption~as.numeric(date), set1, pch=19, col=ID, main=paste("ID: ",i), type="n", xlab="date")
   z <- 1
-  for (j in unique(df_oddvariance$day)) {
-    set2 <- subset(set1,day==j)
-    points(consumption~as.numeric(date),set2, pch=19, col=z)
+  for (j in unique(df_oddvariance$daytype)) {
+    set2 <- subset(set1,daytype==j)
+    points(consumption~as.numeric(date), set2, pch=19, col=z)
     z <- z+1
   }
 }
+
 
 
 
@@ -630,25 +635,46 @@ for (i in unique(df_oddvariance$ID)) {
 
 par(mfrow=c(1,1))
 
-plot(consumption~as.numeric(date),subset(df,ID==6392172), col=day, pch=19)
+plot(consumption~as.numeric(date),subset(df,ID==4962433), col=day, pch=19)
 legend("topleft", legend=levels(df$day), pch=19, col=unique(df$day))
 
-plot(consumption~as.numeric(date),data=subset(df,ID==65118755), col=day, pch=19)
+plot(consumption~as.numeric(date),subset(df,ID==6790785), col=day, pch=19)
 legend("topleft", legend=levels(df$day), pch=19, col=unique(df$day))
 
-plot(consumption~as.numeric(date),subset(df,ID==65118764), col=day, pch=19)
+plot(consumption~as.numeric(date),subset(df,ID==7072241), col=day, pch=19)
 legend("topleft", legend=levels(df$day), pch=19, col=unique(df$day))
 
-outliers <- c(1558,1552,1544,1611,1592,1568,1600,1629,1612,1603,3061,3045,3065,2971,2961,2955,3044,2995,3034,3055,3184,3133,3169,3123)
+plot(consumption~as.numeric(date),subset(df,ID==6392057), col=day, pch=19)
+legend("topleft", legend=levels(df$day), pch=19, col=unique(df$day))
+
+plot(consumption~as.numeric(date),subset(df,ID==4866195), col=day, pch=19)
+legend("topleft", legend=levels(df$day), pch=19, col=unique(df$day))
+
+plot(consumption~as.numeric(date),subset(df,ID==5140250), col=day, pch=19)
+legend("topleft", legend=levels(df$day), pch=19, col=unique(df$day))
+
+plot(consumption~as.numeric(date),data=subset(df,ID==78443775), col=day, pch=19)
+legend("topleft", legend=levels(df$day), pch=19, col=unique(df$day))
+
+plot(consumption~as.numeric(date),subset(df,ID==65012411), col=day, pch=19)
+legend("topleft", legend=levels(df$day), pch=19, col=unique(df$day))
+
+plot(consumption~as.numeric(date),subset(df,ID==65067046), col=day, pch=19)
+legend("topleft", legend=levels(df$day), pch=19, col=unique(df$day))
+
+outliers <- c(531,4121,6905,930,915,303,1105,7473,7462,1641,1683,2907,2968,5775,4149,6663,2124,2260)
 
 df <- df[-outliers,]
 
-# Remove zeros (because of shutting down?)
-df <- subset(df, consumption!=0)
-
 # Remove odd buildings
-df <- subset(df, ID!=65118812)
-df <- subset(df, ID!=69999051)
+df <- subset(df, ID!=4529799)
+df <- subset(df, ID!=4529800)
+df <- subset(df, ID!=6393013)
+df <- subset(df, ID!=69652588)
+df <- subset(df, ID!=78185925)
+df <- subset(df, ID!=65118848)
+df <- droplevels(df)
+
 
 
 # Set final data frame
@@ -657,19 +683,17 @@ df_model$temp <- 21-df$temp
 
 
 
+# Final model
+lm4 <- step(lm(adjconsumption~., df_model), scope=~.^3, k=log(nrow(df_model)), trace=FALSE)
+anova4 <- Anova(lm4)
+par(mfrow=c(2,2))
+plot(lm4, col=df$ID, pch=19)
+sum4 <- summary(lm4, correlation=TRUE)
+corr4 <- data.frame(sum4$correlation)
+cov4 <- sum4$cov.unscaled
 
+match <- grep(pattern = "temp", x = rownames(corr4))
+(corr4)[match,match]
 
-
-
-
-
-
-
-
-
-match <- grep(pattern = "pressure", x = rownames(corr2))
-(corr2)[match,match]
-
-# Check wind speed, temperature, and pressure - check correlation between those 3
-pairs(subset(df, select=c(4,6,7)))
-coplot(wind_spd~temp|pressure,df,panel=panel.smooth)
+match <- grep(pattern = "temp", x = rownames(sum4))
+(sum4)[match]
