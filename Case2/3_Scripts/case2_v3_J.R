@@ -173,7 +173,6 @@ summary(df)
 
 # Date to workweek and weekend, per month
 df$date <- as.Date(df$date)
-# df$month <- months(df$date)
 df$day <- weekdays(df$date)
 df$week <- week(df$date)
 df$daytype <- weekdays(df$date)
@@ -220,14 +219,14 @@ colnames(id_type) <- c("ID", "type") # rename columns
 
 df_missing <- data.frame(setdiff(unique(df$ID),unique(htk$Målernr)),rep("000",6))
 colnames(df_missing) <- c("ID", "type") # rename columns
-df_type <- rbind(id_type,df_missing)
+df_type <- rbind(id_type, df_missing)
 
 # Table of building types for appendix
 print(xtable(type_building, type = "latex"), file = "type_building.tex")
 
-# Outlier investigation
+# First outlier investigation
 plot(21-df$temp, df$consumption, type="p", col=df$ID, pch=19, xlab="Temperature Difference (°C)", ylab="Consumption")
-plot(consumption~I(21-temp), subset(df, ID==78185925), pch=19, col=2)
+plot(consumption~I(21-temp), subset(df, ID==78185925), pch=19, col=2, xlab="Temperature Difference (°C)", ylab="Consumption")
 outliers <- df[c(3282,3357),] 
 df <- df[-c(3282,3357),] # Removing outliers 3282 and 3357
 
@@ -316,6 +315,10 @@ par(mfrow=c(1,1))
 plot(lm1$residuals~I(21-temp),df, col=df$ID, pch=19)
 # residuals have different variance per building
 
+
+
+
+
 # Calculate residuals variance per building
 df_variance <- aggregate(unname(lm1$residuals), list(df$ID), var)
 colnames(df_variance) <- c("ID","variance")
@@ -326,13 +329,29 @@ df_mean <- aggregate(df$consumption, list(df$ID), mean)
 colnames(df_mean) <- c("ID","mean")
 df <- merge(df, df_mean, by = "ID")
 
+# Plot variance per building against mean consumption per building
+plot(variance ~ mean, df, col=df$ID, pch=19)
+lines(seq(-1,4,length.out=100),rep(0.03,100), col=2) # we propose a threshold of 0.03 variance to identify odd buildings
 
+# Data frame of odd buildings (10) at variance greater than 0.03
+df_oddvariance1 <- data.frame(subset(df, variance>0.03))
+plot(consumption~I(21-temp), type="p", df_oddvariance1, col=ID, pch=19)
+df_oddvariance1 <- droplevels(df_oddvariance1)
+oddvariance1 <- unique(df_oddvariance1$ID)
 
+# Plot variance per building against mean consumption per building at lower variance
+plot(variance ~ mean, df,col=df$ID, pch=19, xlim=c(0,1), ylim=c(0,0.03))
+lines(seq(0,2,length.out=100),rep(0.0075,100), col=2) # 10+3 more outliers with a proposed threshold of 0.0075 variance to identify odd buildings
+
+# Data frame of odd buildings (13) at variance greater than 0.0075
+df_oddvariance2 <- data.frame(subset(df, variance>0.0075))
+plot(consumption~I(21-temp), type="p", df_oddvariance2, col=ID, pch=19)
+df_oddvariance2 <- droplevels(df_oddvariance2)
+oddvariance2 <- unique(df_oddvariance2$ID)
 
 # Plot mean consumption vs. ID
 plot(mean~ID, df, col=df$ID)
 lines(df$ID,rep(0.5,length(df$ID)), col=2) # We propose a threshold at mean of 0.5 to "label" odd-buildings
-# lines(df$ID,rep(0.3,length(df$ID)), col=2)
 
 # Data frame of odd buildings (16) at mean greater than 0.5
 df_oddmean <- data.frame(subset(df, mean>0.5))
@@ -343,86 +362,22 @@ oddmeanID5 <- unique(df_oddmean$ID)
 
 
 
-# Variance per building against mean consumption per building
-plot(variance ~ mean, df, col=df$ID, pch=19)
-lines(seq(-1,4,length.out=100),rep(0.03,100), col=2) # we propose a threshold of 0.03 variance to identify odd buildings
-# abline(lm(variance~mean,df))
-# 10 buildings are outliers
-
-# Data frame of odd buildings (10) at variance greater than 0.03
-df_oddvariance1 <- data.frame(subset(df, variance>0.03))
-plot(consumption~I(21-temp), type="p", df_oddvariance1, col=ID, pch=19)
-df_oddvariance1 <- droplevels(df_oddvariance1)
-oddvariance1 <- unique(df_oddvariance1$ID)
-
-
-
-
-# Or increase the threshold of the variance?
-plot(variance ~ mean, df,col=df$ID, pch=19, xlim=c(0,1), ylim=c(0,0.03))
-lines(seq(0,2,length.out=100),rep(0.0075,100), col=2) # 10+3 more outliers with a proposed threshold of 0.0075 variance to identify odd buildings
-
-df_oddvariance2 <- data.frame(subset(df, variance>0.0075))
-plot(consumption~I(21-temp), type="p", df_oddvariance2, col=ID, pch=19)
-df_oddvariance2 <- droplevels(df_oddvariance2)
-oddvariance2 <- unique(df_oddvariance2$ID)
-
-
-
-# Adjust consumption to eliminate 'size' of buildings in the model
-df$adjconsumption <- df$consumption/df$mean
-df_oddvariance2$adjconsumption <- df_oddvariance2$consumption/df_oddvariance2$mean
-
-df_minus10 <- data.frame(subset(df, variance<0.03))
-df_minus10 <- droplevels(df_minus10)
+# Create data frames to check
 df_minus13 <- data.frame(subset(df, variance<0.0075))
 df_minus13 <- droplevels(df_minus13)
 
 
 
 
-# Plot adjusted consumption against date of odd variance buildings
+# Plot consumption against date of odd variance buildings
 par(mfrow=c(1,1))
-plot(adjconsumption~as.numeric(date), df_oddvariance2, col=ID, pch=19)
+plot(consumption~as.numeric(date), df_oddvariance2, col=ID, pch=19)
 legend("topleft", legend=levels(df_oddvariance2$ID), pch=19, col=unique(df_oddvariance2$ID), cex=0.8)
 # There are some weird buildings and outliers that we could check
 
-# Plot adjusted consumption against date of normal variance buildings
-plot(adjconsumption~as.numeric(date), df_minus13, col=ID, pch=19)
+# Plot consumption against date of normal variance buildings
+plot(consumption~as.numeric(date), df_minus13, col=ID, pch=19)
 # There are some weird buildings and outliers that we could check
-
-
-
-
-# Outliers in the normal variance buildings
-# plot(adjconsumption~as.numeric(date),subset(df,ID==6393013), pch=19, col=day)
-# 6393013
-# plot(adjconsumption~as.numeric(date),subset(df,ID==65118755), pch=19, col=day)
-# 65118755
-
-# Function to plot one single building by creating a subset and color by day
-# plot(adjconsumption~as.numeric(date),subset(df,ID==78185925), pch=19, col=day)
-# legend("topleft", legend=unique(df$day), pch=19, col=as.numeric(unique(df$day)), cex=0.8)
-
-
-
-
-# Plot each building with normal variance
-par(mfrow=c(3,5))
-for (i in unique(df_minus13$ID)) {
-  plot(adjconsumption~as.numeric(date),subset(df,ID==i), pch=19, col=ID, main=paste("ID: ",i), xlab="date")
-}
-
-oddID <- c("69861509", "odd", "78443775", "outlier", "7072241", "odd", "69001263", "odd", "69688095", "odd", "4529799", "odd", "4529800", "day", "4866195", "outlier", "6392172", "day", "6393013", "day", "65012411", "outlier", "65063303", "odd", "65118755", "day", "65118764", "day", "65118805", "odd", "65118812", "odd", "6790785", "outlier")
-df_oddID <- data.frame(matrix(oddID,ncol=2, byrow=TRUE))
-colnames(df_oddID) <- c("ID", "behaviour")
-
-# Plot each building with normal variance but weird behaviour
-par(mfrow=c(3,6))
-for (i in unique(df_oddID$ID)) {
-  plot(adjconsumption~as.numeric(date),subset(df,ID==i), pch=19, col=ID,  main=paste("ID: ",i), xlab="date")
-}
-# 4 outliers, 9 odd buildings, and 4 day-dependant buildings
 
 
 
@@ -430,88 +385,59 @@ for (i in unique(df_oddID$ID)) {
 # Plot each building with odd variance
 par(mfrow=c(3,5))
 for (i in unique(df_oddvariance2$ID)) {
-  plot(adjconsumption~as.numeric(date),subset(df,ID==i), pch=19, col=ID, main=paste("ID: ",i), xlab="date")
+  plot(consumption~as.numeric(date),subset(df,ID==i), pch=19, col=ID, main=paste("ID: ",i), xlab="date")
 }
 # Here we can identify some weird behaving buildings like 69478883 and 69999051, also remove some outliers and adjust factor to day or week or month
 # the consumption has some peaks during the metered period, how can we 'tell' our statistical model to adjust for this
-
-
-
-
 
 # Plot each building with odd variance per day
 par(mfrow=c(3,5))
 for (i in unique(df_oddvariance2$ID)) {
   set1 <- subset(df,ID==i)
-  plot(adjconsumption~as.numeric(date),set1, pch=19, col=ID, main=paste("ID: ",i), type="n", xlab="date")
+  plot(consumption~as.numeric(date),set1, pch=19, col=ID, main=paste("ID: ",i), type="n", xlab="date")
   z <- 1
   for (j in unique(df_oddvariance2$day)) {
     set2 <- subset(set1,day==j)
-    points(adjconsumption~as.numeric(date),set2, pch=19, col=z)
+    points(consumption~as.numeric(date),set2, pch=19, col=z)
     z <- z+1
   }
 }
 # per day doesn't really give us a real difference
 
-
-
-
 # Plot each building with odd variance per day type
 par(mfrow=c(3,5))
 for (i in unique(df_oddvariance2$ID)) {
   set1 <- subset(df,ID==i)
-  plot(adjconsumption~as.numeric(date), set1, pch=19, col=ID, main=paste("ID: ",i), type="n", xlab="date")
+  plot(consumption~as.numeric(date), set1, pch=19, col=ID, main=paste("ID: ",i), type="n", xlab="date")
   z <- 1
   for (j in unique(df_oddvariance2$daytype)) {
     set2 <- subset(set1,daytype==j)
-    points(adjconsumption~as.numeric(date), set2, pch=19, col=z)
+    points(consumption~as.numeric(date), set2, pch=19, col=z)
     z <- z+1
   }
 }
 # Doesn't really fixes the peaks but helps to identify that maybe per week is the best factor
 
-
-
-
-
 # Plot each building with odd variance per week
 par(mfrow=c(3,5))
 for (i in unique(df_oddvariance2$ID)) {
   set1 <- subset(df,ID==i)
-  plot(adjconsumption~as.numeric(date), set1, pch=19, col=ID, main=paste("ID: ",i), type="n", xlab="date")
+  plot(consumption~as.numeric(date), set1, pch=19, col=ID, main=paste("ID: ",i), type="n", xlab="date")
   z <- 1
   for (j in unique(df_oddvariance2$week)) {
     set2 <- subset(set1,week==j)
-    points(adjconsumption~as.numeric(date), set2, pch=19, col=z)
+    points(consumption~as.numeric(date), set2, pch=19, col=z)
     z <- z+1
   }
 }
 # Great fit for weekly peaks
-# two outliers and two odd buildings
+# two outliers and two odd buildings in this model
 
 
 
 
-# Remove zeros
-df <- subset(df, consumption!=0)
-df_oddvariance2 <- subset(df_oddvariance2, consumption!=0)
-df_minus13 <- subset(df_minus13, consumption!=0)
-
-# Remove outliers
-#df <- df[-as.numeric(rownames(df[df$adjconsumption==(max(subset(df, ID==4962433)$adjconsumption)),])),]
-rownames(df[df$adjconsumption==(max(subset(df, ID==78443775)$adjconsumption)),])
-df <- df[-9596,]
-rownames(df[df$adjconsumption==(max(subset(df, ID==6790785)$adjconsumption)),])
-df <- df[-5307,]
-
-# Remove odd buildings
-df <- subset(df, ID!=69999051)
-df <- subset(df, ID!=69478883)
-
-df <- subset(df, ID!=69688095)
-df <- subset(df, ID!=6393013)
-df <- subset(df, ID!=65118805)
-
+# Adjust consumption to eliminate 'size' of buildings in the model
+df$adjconsumption <- df$consumption/df$mean
 
 # Set final data frame
 df_model <- df[,-c(2,3,4,8,10,11,12)]
@@ -520,8 +446,7 @@ df_model$temp <- 21-df$temp
 
 
 
-
-# Full model with interactions
+# Full model with interactions (with adjusted consumption and date as week)
 lm2 <- step(lm(adjconsumption~., df_model), scope=~.^3, k=log(nrow(df_model)), trace=FALSE)
 anova2 <- Anova(lm2)
 par(mfrow=c(2,2))
@@ -531,8 +456,216 @@ corr2 <- data.frame(sum2$correlation)
 
 
 
+# Clean df variance and mean again
+df <- df[,-c(11,12)]
 
-# Get standardized residuals and normal residuals and check those buildings
+# Calculate residuals variance per building
+df_variance <- aggregate(unname(lm2$residuals), list(df$ID), var)
+colnames(df_variance) <- c("ID","variance")
+df <- merge(df, df_variance, by = "ID")
+
+# Calculate mean consumption by building
+df_mean <- aggregate(df$consumption, list(df$ID), mean)
+colnames(df_mean) <- c("ID","mean")
+df <- merge(df, df_mean, by = "ID")
+
+# Plot variance per building against mean consumption per building
+par(mfrow=c(1,1))
+plot(variance ~ mean, df, col=df$ID, pch=19)
+lines(seq(-1,4,length.out=100),rep(0.1,100), col=2) # we propose a threshold of 0.1 variance to identify odd buildings
+
+# Data frame of odd buildings (10) at variance greater than 0.1
+df_oddvariance <- data.frame(subset(df, variance>0.1))
+plot(consumption~I(21-temp), type="p", df_oddvariance, col=ID, pch=19)
+df_oddvariance <- droplevels(df_oddvariance)
+oddvariance <- unique(df_oddvariance$ID)
+
+# Maybe add 529800 and 7072241 too
+
+
+# Create data frames to check
+df_minus6 <- data.frame(subset(df, variance<0.1))
+df_minus6 <- droplevels(df_minus6)
+
+
+
+
+
+# Plot consumption against date of odd variance buildings
+par(mfrow=c(1,1))
+plot(consumption~as.numeric(date), df_oddvariance, col=ID, pch=19)
+legend("topleft", legend=levels(df_oddvariance$ID), pch=19, col=unique(df_oddvariance$ID), cex=0.8)
+# There are some weird buildings and outliers that we could check
+
+# Plot consumption against date of normal variance buildings
+plot(consumption~as.numeric(date), df_minus6, col=ID, pch=19)
+
+# Plot each building with odd variance per day
+par(mfrow=c(2,3))
+for (i in unique(df_oddvariance$ID)) {
+  set1 <- subset(df,ID==i)
+  plot(consumption~as.numeric(date),set1, pch=19, col=ID, main=paste("ID: ",i), type="n", xlab="date")
+  legend("topleft", legend=levels(df_oddvariance$day), pch=19, col=unique(df_oddvariance$day))
+  z <- 1
+  for (j in unique(df_oddvariance$day)) {
+    set2 <- subset(set1,day==j)
+    points(consumption~as.numeric(date),set2, pch=19, col=z)
+    z <- z+1
+  }
+}
+
+
+
+# Remove outliers
+
+par(mfrow=c(1,1))
+
+plot(consumption~as.numeric(date),subset(df,ID==6392172), col=day, pch=19)
+legend("topleft", legend=levels(df$day), pch=19, col=unique(df$day))
+
+plot(consumption~as.numeric(date),data=subset(df,ID==65118755), col=day, pch=19)
+legend("topleft", legend=levels(df$day), pch=19, col=unique(df$day))
+
+plot(consumption~as.numeric(date),subset(df,ID==65118764), col=day, pch=19)
+legend("topleft", legend=levels(df$day), pch=19, col=unique(df$day))
+
+outliers <- c(1558,1552,1544,1611,1592,1568,1600,1629,1612,1603,3061,3045,3065,2971,2961,2955,3044,2995,3034,3055,3184,3133,3169,3123)
+
+df <- df[-outliers,]
+  
+# Remove zeros (because of shutting down?)
+df <- subset(df, consumption!=0)
+
+# Remove odd buildings
+df <- subset(df, ID!=65118812)
+df <- subset(df, ID!=69999051)
+df <- droplevels(df)
+
+# Remove september observations
+# df <- subset(df,date>)
+
+# Set final data frame
+df_model <- df[,-c(2,3,4,8,12,13)]
+df_model$temp <- 21-df$temp
+df_model <- droplevels(df_model)
+
+
+
+
+# Full model with interactions and without pressure
+lm3 <- step(lm(adjconsumption~., df_model), scope=~.^3, k=log(nrow(df_model)), trace=FALSE)
+anova3 <- Anova(lm3)
+alias(lm3)
+par(mfrow=c(2,2))
+plot(lm3, col=df$ID, pch=19)
+sum3 <- summary(lm3, correlation=TRUE)
+corr3 <- data.frame(sum3$correlation)
+
+
+
+
+
+
+# Clean df variance and mean again
+df <- df[,-c(12,13)]
+
+# Calculate residuals variance per building
+df_variance <- aggregate(unname(lm3$residuals), list(df$ID), var)
+colnames(df_variance) <- c("ID","variance")
+df <- merge(df, df_variance, by = "ID")
+
+# Calculate mean consumption by building
+df_mean <- aggregate(df$consumption, list(df$ID), mean)
+colnames(df_mean) <- c("ID","mean")
+df <- merge(df, df_mean, by = "ID")
+
+# Plot variance per building against mean consumption per building
+par(mfrow=c(1,1))
+plot(variance ~ mean, df, col=df$ID, pch=19)
+lines(seq(-1,4,length.out=100),rep(0.05,100), col=2) # we propose a threshold of 0.1 variance to identify odd buildings
+
+# Data frame of odd buildings (10) at variance greater than 0.1
+df_oddvariance <- data.frame(subset(df, variance>0.05))
+plot(consumption~I(21-temp), type="p", df_oddvariance, col=ID, pch=19)
+df_oddvariance <- droplevels(df_oddvariance)
+oddvariance <- unique(df_oddvariance$ID)
+
+# Maybe add 529800 and 7072241 too
+
+
+# Create data frames to check
+df_minus7 <- data.frame(subset(df, variance<0.05))
+df_minus7 <- droplevels(df_minus7)
+
+
+
+
+
+# Plot consumption against date of odd variance buildings
+par(mfrow=c(1,1))
+plot(consumption~as.numeric(date), df_oddvariance, col=ID, pch=19)
+legend("topleft", legend=levels(df_oddvariance$ID), pch=19, col=unique(df_oddvariance$ID), cex=0.8)
+# There are some weird buildings and outliers that we could check
+
+# Plot consumption against date of normal variance buildings
+plot(consumption~as.numeric(date), df_minus6, col=ID, pch=19)
+
+# Plot each building with odd variance per day
+par(mfrow=c(2,4))
+for (i in unique(df_oddvariance$ID)) {
+  set1 <- subset(df,ID==i)
+  plot(consumption~as.numeric(date),set1, pch=19, col=ID, main=paste("ID: ",i), type="n", xlab="date")
+  #legend("topleft", legend=levels(df_oddvariance$day), pch=19, col=unique(df_oddvariance$day))
+  z <- 1
+  for (j in unique(df_oddvariance$day)) {
+    set2 <- subset(set1,day==j)
+    points(consumption~as.numeric(date),set2, pch=19, col=z)
+    z <- z+1
+  }
+}
+
+
+
+# Remove outliers
+
+par(mfrow=c(1,1))
+
+plot(consumption~as.numeric(date),subset(df,ID==6392172), col=day, pch=19)
+legend("topleft", legend=levels(df$day), pch=19, col=unique(df$day))
+
+plot(consumption~as.numeric(date),data=subset(df,ID==65118755), col=day, pch=19)
+legend("topleft", legend=levels(df$day), pch=19, col=unique(df$day))
+
+plot(consumption~as.numeric(date),subset(df,ID==65118764), col=day, pch=19)
+legend("topleft", legend=levels(df$day), pch=19, col=unique(df$day))
+
+outliers <- c(1558,1552,1544,1611,1592,1568,1600,1629,1612,1603,3061,3045,3065,2971,2961,2955,3044,2995,3034,3055,3184,3133,3169,3123)
+
+df <- df[-outliers,]
+
+# Remove zeros (because of shutting down?)
+df <- subset(df, consumption!=0)
+
+# Remove odd buildings
+df <- subset(df, ID!=65118812)
+df <- subset(df, ID!=69999051)
+
+
+# Set final data frame
+df_model <- df[,-c(2,3,4,8,12,13)]
+df_model$temp <- 21-df$temp
+
+
+
+
+
+
+
+
+
+
+
+
 
 match <- grep(pattern = "pressure", x = rownames(corr2))
 (corr2)[match,match]
@@ -540,16 +673,3 @@ match <- grep(pattern = "pressure", x = rownames(corr2))
 # Check wind speed, temperature, and pressure - check correlation between those 3
 pairs(subset(df, select=c(4,6,7)))
 coplot(wind_spd~temp|pressure,df,panel=panel.smooth)
-
-
-
-
-# Full model with interactions and without pressure
-lm3 <- step(lm(adjconsumption~.+I(21-temp)-date-consumption-temp-variance-mean-pressure, df), scope=~.^3, k=log(nrow(df)), trace=FALSE)
-anova3 <- Anova(lm3)
-alias(lm3)
-plot(lm3, col=df$ID, pch=19)
-sum3 <- summary(lm3, correlation=TRUE)
-corr3 <- data.frame(sum3$correlation)
-
-plot(consumption~as.numeric(date), type="p",df_oddvariance2, col=ID, pch=19)
