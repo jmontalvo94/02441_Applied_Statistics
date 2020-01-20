@@ -92,6 +92,7 @@ for (i in split_data){
   hour <- day[,2]
   plot(readings~ex, xlab="Date", ylab="Readings", col=("Red"))
   x.inter <- list()
+  
   for (element in as.character(date)){
     dat <- as.POSIXct(paste(element, "23:59:00"), format="%Y-%m-%d %H:%M:%S")
     x.inter <- append(x.inter, dat)

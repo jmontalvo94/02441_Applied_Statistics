@@ -118,6 +118,7 @@ df <- df[,c(1,2,4)]
 names(df) <- c("ID", "Time", "Reading") 
 df$Reading <- as.numeric(df$Reading)
 
+
 # Exclude meters with less than 121 records
 count_list <- count(df, ID)
 count_list <- count_list[count_list$n < 121,]
@@ -131,6 +132,7 @@ library(stringr)
 df$Time <- as.POSIXct(strptime(df$Time, format = "%d-%m-%Y %H.%M"))
 
 split_data = split(df, df$ID)
+
 for (i in split_data){
   x <- i
   x <- x[order(x$Time),]
@@ -148,7 +150,11 @@ for (i in split_data){
   inter.result <- approx(x = ex, y = readings, xout=x.inter)
   points(inter.result$x, inter.result$y, pch = 2)
   legend("topleft", legend = c("data", "interpolated"), pch = c(1,2), col=c("Red", "Black"))
+  diff_buil <- diff(inter.result$y)
 }
+
+
+
 
 # Merge with WU
 
