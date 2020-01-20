@@ -172,28 +172,30 @@ print(xtable(sum_df, type = "latex"), file = "summary_df.tex")
 
 # Date to workweek and weekend, per month
 df$date <- as.Date(df$date)
-df$month <- months(df$date)
 df$day <- weekdays(df$date)
+df$week <- week(df$date)
+df$daytype <- weekdays(df$date)
 workweek <- c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday")
 weekend <- c("Saturday", "Sunday")
 for (i in workweek) {
-  df$day[df$day == i] <- "Wrk"
+  df$daytype[df$day == i] <- "Workweek"
 }
 for (i in weekend) {
-  df$day[df$day == i] <- "Wknd"
+  df$daytype[df$day == i] <- "Weekend"
 }
 
-df$seasonality <- paste(df$month,df$day)
-df <- df[,-c(14,15)]
 
 # Factorize variables
-df$seasonality <- factor(df$seasonality)
+df$day <- factor(df$day)
+df$daytype <- factor(df$daytype)
+df$week <- factor(df$week)
 df$ID <- factor(df$ID)
 df$dir <- factor(df$dir)
 df$cond <- factor(df$cond)
 df$date <- factor(df$date)
+str(df)
 
-# Removing direction, visibility, condition, and fog
+# Removing direction, visibility, condition, fog, and rain
 plot(fog~cond, df)
 plot(rain~cond, df) #it doesn't seem that condition gives interpretable info
 df <- df[,-c(8,9,11,12,13)]
@@ -222,9 +224,6 @@ id_type <- rbind(id_type,df_missing)
 # Table of building types for appendix
 print(xtable(type_building, type = "latex"), file = "type_building.tex")
 
-# Outlier investigation
-outliers <- df[c(3282,3357),] 
-
 # Now add new type column to the df 
 df$ID <- factor(df$ID)
 df <- merge(df, id_type ,by="ID")
@@ -236,12 +235,14 @@ summary(lm_u)
 df_u <- data.frame(data.frame(lm_u$coefficients)[c(84:166),],row.names=levels(df$ID))
 colnames(df_u) <- "u"
 df_u$u <- df_u$u+df_u$u[1]
-#df_u$ID <- levels(df$ID)
+df_u$u[1] <- df_u$u[1]/2
+df_u$ID <- levels(df$ID)
 
 # Check dew collinearity
 #pairs(subset(df, select=c(4:6)))
-
+cor.test(df$temp, df$dew_pt)
 temp_interval <- cut(df$temp, 4) # divide temperature in intervals to colour
+
 #png(filename="corr_dewpt.png", width=1750, height=1750, res=300)
 p00 <- ggpairs(df[, c(4,5,6)], aes(colour = temp_interval))
 for(i in 1:p00$nrow) {
@@ -254,7 +255,6 @@ for(i in 1:p00$nrow) {
 p00 + theme_classic()
 #dev.off()
 
-cor.test(df$temp, df$dew_pt)
 df <- df[,-5] # Correlation very high at 0.95, thus remove dew_pt
 
 # Data visualization ------------------------------------------------------
@@ -279,10 +279,9 @@ dev.off()
 #pairs(subset(df, select=c(3:8), col=df$ID))
 
 # Outlier investigation
-#outliers <- df[c(3282,3357),] 
+outliers <- df[c(3282,3357),] 
 #plot(df$temp, df$consumption, type="p", col=df$ID, pch=19)
 #plot(consumption~temp, subset(df, ID==78185925), pch=19, col=2)
-
 
 # Consumption - Temp by type
 png(filename="cons-temp.png", width=2250, height=1050, res=300)
@@ -300,6 +299,7 @@ p2 <- ggplot() + geom_point(data=type032, aes(x=(21-temp), y=consumption, col="I
 p2 + scale_color_manual(guide = guide_legend(),values=c("#899DA4","#DC863B","#C93312"), name="Sports and swimming (type = 032)") +  xlab("Temperature ºC") + ylab("Consumption") + theme_classic() + theme(legend.position ="bottom",legend.box = 'horizontal', )
 dev.off()
 
+# After visualizing, remove outliers
 df <- df[-c(3282,3357),] # Removing outliers 3282 and 3357
 
 # Plot consumption sum vs type of building
