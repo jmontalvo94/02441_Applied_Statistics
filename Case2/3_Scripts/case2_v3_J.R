@@ -21,7 +21,6 @@ require("xtable")
 # require("ggExtra")
 # require("GGally")
 # require('ggcorrplot')
-# require("wesanderson")
 library("dplyr")
 
 # Load data ----------------------------------------------------------
@@ -214,10 +213,10 @@ type_building <- rbind(type_building,zero_type)
 
 # data frame with only type code
 type <- type[,-2]
-id_type <- cbind.data.frame(htk$Målernr, type)  # merge ID and type 
+id_type <- cbind.data.frame(htk$M?lernr, type)  # merge ID and type 
 colnames(id_type) <- c("ID", "type") # rename columns
 
-df_missing <- data.frame(setdiff(unique(df$ID),unique(htk$Målernr)),rep("000",6))
+df_missing <- data.frame(setdiff(unique(df$ID),unique(htk$M?lernr)),rep("000",6))
 colnames(df_missing) <- c("ID", "type") # rename columns
 df_type <- rbind(id_type, df_missing)
 
@@ -225,8 +224,8 @@ df_type <- rbind(id_type, df_missing)
 print(xtable(type_building, type = "latex"), file = "type_building.tex")
 
 # First outlier investigation
-plot(21-df$temp, df$consumption, type="p", col=df$ID, pch=19, xlab="Temperature Difference (°C)", ylab="Consumption")
-plot(consumption~I(21-temp), subset(df, ID==78185925), pch=19, col=2, xlab="Temperature Difference (°C)", ylab="Consumption")
+plot(21-df$temp, df$consumption, type="p", col=df$ID, pch=19, xlab="Temperature Difference (?C)", ylab="Consumption")
+plot(consumption~I(21-temp), subset(df, ID==78185925), pch=19, col=2, xlab="Temperature Difference (?C)", ylab="Consumption")
 outliers <- df[c(3282,3357),] 
 df <- df[-c(3282,3357),] # Removing outliers 3282 and 3357
 
