@@ -184,7 +184,7 @@ setwd("~/Github/02441_Applied_Statistics/Case2/4_Images")
 # Inspect Data
 str(df)
 summary(df)
-sum_df <- summary(df[9:14])
+sum_df <- summary(df)
 print(xtable(sum_df, type = "latex"), file = "summary_df.tex")
 
 # Date to workweek and weekend, per month
@@ -200,7 +200,6 @@ for (i in workweek) {
 for (i in weekend) {
   df$daytype[df$day == i] <- "Weekend"
 }
-
 
 # Factorize variables
 df$day <- factor(df$day)
@@ -254,11 +253,19 @@ df <- merge(df, id_type ,by="ID")
 lm_u <- lm(consumption~ID*I(21-temp),df)
 Anova(lm_u)
 summary(lm_u)
+# Store in LaTex table
+lm_u_a <- Anova(lm_u)
+print(xtable(lm_u_a, type = "latex"), file = "lm_u_anova.tex")
+lm_u_sum <- summary(lm_u)
+print(xtable(lm_u_sum, type = "latex"), file = "lm_u_summary.tex")
+
 df_u <- data.frame(data.frame(lm_u$coefficients)[c(84:166),],row.names=levels(df$ID))
 colnames(df_u) <- "u"
 df_u$u <- df_u$u+df_u$u[1]
 df_u$u[1] <- df_u$u[1]/2
 df_u$ID <- levels(df$ID)
+u_sum <- summary(df_u)
+print(xtable(u_sum, type = "latex"), file = "u_summary.tex")
 
 # Check dew collinearity
 #pairs(subset(df, select=c(4:6)))
@@ -344,9 +351,6 @@ p4 + scale_color_manual(values=rainbow(25)) + xlab("Date") + ylab("Consumption")
 dev.off()
 
 # Models ------------------------------------------------------------------
-# these two plots done in data visualisation
-#plot(consumption~I(21-temp), df,type="p", col=ID, pch=19)
-#plot(consumption~as.numeric(date), df,type="p", col=ID, pch=19)
 
 # Test simple model
 lm1 <- lm(consumption~(ID+week)*I(21-temp), df)
@@ -451,17 +455,17 @@ dev.off()
 
 # Plot consumption against temp of odd variance buildings
 png(filename="odd_var_vs_temp.png", width=1750, height=1550, res=300)
-par(mfrow=c(1,1), oma =c(1,2,0,4.5), mar = c(3,2,2,2))
-plot(consumption~temp, df_oddvariance2, col=ID, pch=19, cex=0.6, xlab="Temperature ºC", ylab="Consumption")
+par(mfrow=c(1,1), oma =c(0,0,0,4.5), mar = c(5,5,2,2))
+plot(y=df_oddvariance2$consumption, x=(21-df_oddvariance2$temp), col=df_oddvariance2$ID, pch=19, cex=0.6, xlab="Temperature ºC", ylab="Consumption")
 par(xpd=NA)
-legend(x=130, y=4.80, legend=levels(df_oddvariance2$ID), pch=19, col=unique(df_oddvariance2$ID), cex=0.8)
+legend(x=25, y=5.2, legend=levels(df_oddvariance2$ID), pch=19, col=unique(df_oddvariance2$ID), cex=0.8)
 dev.off()
 # There are some weird buildings and outliers that we could check
 
 # Plot consumption against date of normal variance buildings
 png(filename="normal_var_vs_temp.png", width=1750, height=1750, res=300)
 par(mfrow=c(1,1))
-plot(consumption~temp, df_minus13, col=ID, pch=19, cex=0.6, xlab="Temperature ºC", ylab="Consumption")
+plot(y=df_minus13$consumption, x=(21-df_minus13$temp), col=df_minus13$ID, pch=19, cex=0.6, xlab="Temperature ºC", ylab="Consumption")
 dev.off()
 # There are some weird buildings and outliers that we could check
 
