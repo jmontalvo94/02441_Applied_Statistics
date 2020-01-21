@@ -418,9 +418,9 @@ for (i in unique(df_oddvariance2$ID)) {
 # Doesn't really fixes the peaks but helps to identify that maybe per week is the best factor
 
 # Plot each building with odd variance per week
-par(mfrow=c(3,5))
+par(mfrow=c(1,1))
 for (i in unique(df_oddvariance2$ID)) {
-  set1 <- subset(df,ID==i)
+  set1 <- subset(df,ID==4939509)
   plot(consumption~as.numeric(date), set1, pch=19, col=ID, main=paste("ID: ",i), type="n", xlab="date")
   z <- 1
   for (j in unique(df_oddvariance2$week)) {
@@ -677,22 +677,44 @@ df <- droplevels(df)
 
 
 # Set final data frame
-df_model <- df[,-c(2,3,4,8,12,13)]
-df_model$temp <- 21-df$temp
+df_model <- df[,-c(2,3,8,12,13)]
 
 
 
 # Final model
-lm4 <- step(lm(adjconsumption~., df_model), scope=~.^3, k=log(nrow(df_model)), trace=FALSE)
+lm4 <- step(lm(adjconsumption~.-temp-week+I(21-temp), df_model), scope=~.^3, k=log(nrow(df_model)), trace=FALSE)
 anova4 <- Anova(lm4)
 par(mfrow=c(2,2))
 plot(lm4, col=df$ID, pch=19)
+
 sum4 <- summary(lm4, correlation=TRUE)
-corr4 <- data.frame(sum4$correlation)
+
+# Get betas
+coef4 <- data.frame(lm4$coefficients)
+alfa <- coef4[1:75,1] 
+coef4 <- coef4[80:154,]
+A <- diag(75)
+A[,1] <- 1
+beta <- A %*% coef4
+alfa <- A %*% alfa
+
+# Get standard error
+corr4 <- sum4$correlation
+corr4 <- corr4[80:154,80:154]
+
 cov4 <- sum4$cov.unscaled
+cov4 <- cov4[80:154,80:154]
 
-match <- grep(pattern = "temp", x = rownames(corr4))
-(corr4)[match,match]
+sig4 <- sum4$sigma^2
+var_beta <- A %*% cov4 %*% t(A) * sig4
 
-match <- grep(pattern = "temp", x = rownames(sum4))
-(sum4)[match]
+se <- sqrt(diag(var_beta))
+
+CI_up <- beta+qt(0.975,lm4$df.residual)*se
+CI_down <- beta+qt(0.025,lm4$df.residual)*se
+
+df_final <- data.frame(unique(df$ID),beta,se,CI_up,CI_down)
+colnames(df_final) <- c("ID","Beta", "Std. Error","CI_Up", "CI_Down")
+
+par(mfrow=c(1,1))
+plot(adjconsumption~I(21-temp), subset(df,ID==4839509), pch=19, col=2, main="ID: 4839509", ylab="Consumption", xlab="Temperature difference (°C)")
