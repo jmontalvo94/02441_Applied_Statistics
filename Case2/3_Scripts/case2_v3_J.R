@@ -305,7 +305,7 @@ plot(consumption~I(21-temp), df,type="p", col=ID, pch=19)
 plot(consumption~as.numeric(date), df,type="p", col=ID, pch=19)
 
 # Test simple model
-lm1 <- lm(consumption~(ID+week)*I(21-temp), df)
+lm1 <- lm(consumption~(ID)*I(21-temp), df)
 Anova(lm1)
 summary(lm1) # Comment in the report
 par(mfrow=c(2,2))
@@ -439,14 +439,12 @@ for (i in unique(df_oddvariance2$ID)) {
 df$adjconsumption <- df$consumption/df$mean
 
 # Set final data frame
-df_model <- df[,-c(2,3,4,8,10,11,12)]
-df_model$temp <- 21-df$temp
-
+df_model <- df[,-c(2,3,8,10,11,12)]
 
 
 
 # Full model with interactions (with adjusted consumption and date as week)
-lm2 <- step(lm(adjconsumption~., df_model), scope=~.^3, k=log(nrow(df_model)), trace=FALSE)
+lm2 <- step(lm(adjconsumption~.-temp+I(21-temp), df_model), scope=~.^3, k=log(nrow(df_model)), trace=FALSE)
 anova2 <- Anova(lm2)
 par(mfrow=c(2,2))
 plot(lm2, col=df$ID, pch=19)
@@ -543,20 +541,26 @@ df <- droplevels(df)
 
 # Remove september observations
 df$date <- as.Date(df$date)
+
+png(filename="september.png", width=1700, height=1700, res=300)
 par(mfrow=c(1,1))
-plot(consumption~date,subset(df,date<"2018-10-01"), pch=19, col=ID)
+plot(consumption~date,subset(df,date<"2018-10-01"), pch=19, col=ID, ylab="Consumption", xlab="Date")
+dev.off()
+
+
+par(mfrow=c(1,1))
+plot(consumption~date,subset(df,date<"2018-10-01"), pch=19, col=ID, ylab="Consumption", xlab="Date")
 df <- subset(df,date>"2018-09-24")
 df$date <- factor(df$date)
 
 # Set final data frame
-df_model <- df[,-c(2,3,4,8,12,13)]
-df_model$temp <- 21-df$temp
+df_model <- df[,-c(2,3,8,12,13)]
 
 
 
 
 # Full model with interactions
-lm3 <- step(lm(adjconsumption~., df_model), scope=~.^3, k=log(nrow(df_model)), trace=FALSE)
+lm3 <- step(lm(adjconsumption~.-temp+I(21-temp), df_model), scope=~.^3, k=log(nrow(df_model)), trace=FALSE)
 anova3 <- Anova(lm3)
 par(mfrow=c(2,2))
 plot(lm3, col=df$ID, pch=19)
@@ -677,22 +681,30 @@ df <- droplevels(df)
 
 
 # Set final data frame
-df_model <- df[,-c(2,3,8,12,13)]
+df_model <- df[,-c(2,3,8,9,12,13)]
 
 
 
 # Final model
-lm4 <- step(lm(adjconsumption~.-temp-week+I(21-temp), df_model), scope=~.^3, k=log(nrow(df_model)), trace=FALSE)
+lm4 <- step(lm(adjconsumption~.-temp+I(21-temp), df_model), scope=~.^3, k=log(nrow(df_model)), trace=FALSE)
 anova4 <- Anova(lm4)
 par(mfrow=c(2,2))
 plot(lm4, col=df$ID, pch=19)
 
+png(filename="lm4_residuals.png", width=1700, height=1500, res=300)
+par(mfrow=c(2,2))
+plot(lm4, col=df$ID, pch=19)
+dev.off()
+
+print(xtable(anova4,type="latex"),file="anova4.tex")
+
 sum4 <- summary(lm4, correlation=TRUE)
+print(xtable(sum4,type="latex"),file="sum4.tex")
 
 # Get betas
-coef4 <- data.frame(lm4$coefficients)
+coef4 <- data.frame(sum4$coefficients)
 alfa <- coef4[1:75,1] 
-coef4 <- coef4[80:154,]
+coef4 <- coef4[80:154,1]
 A <- diag(75)
 A[,1] <- 1
 beta <- A %*% coef4
@@ -716,5 +728,12 @@ CI_down <- beta+qt(0.025,lm4$df.residual)*se
 df_final <- data.frame(unique(df$ID),beta,se,CI_up,CI_down)
 colnames(df_final) <- c("ID","Beta", "Std. Error","CI_Up", "CI_Down")
 
-par(mfrow=c(1,1))
-plot(adjconsumption~I(21-temp), subset(df,ID==4839509), pch=19, col=2, main="ID: 4839509", ylab="Consumption", xlab="Temperature difference (°C)")
+df_final2 <- df_final[order(df_final$Beta),]
+df_final2 <- df_final2[1:5,]
+
+df_final3 <- df_final[order(df_final$`Std. Error`),]
+df_final3 <- df_final3[1:5,]
+
+print(xtable(df_final,type="latex"),file="df_final.tex")
+print(xtable(df_final2,type="latex"),file="df_final2.tex")
+print(xtable(df_final3,type="latex"),file="df_final3.tex")
